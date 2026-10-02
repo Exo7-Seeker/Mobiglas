@@ -1104,7 +1104,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
         <label class="chk"><input type="checkbox" id="sk-sound"> Sons d'interface</label>
         <label class="chk"><input type="checkbox" id="sk-vibe"> Vibrations</label>
       </div>
-      <div class="row"><label for="sk-vpick">Voix de Seeker</label><select id="sk-vpick"><option value="">Automatique</option></select><label for="sk-pitch">Voix : grave ↔ aiguë</label><input id="sk-pitch" type="range" min="0.3" max="1.4" step="0.05"><label for="sk-rate">Voix : lente ↔ rapide</label><input id="sk-rate" type="range" min="0.7" max="1.3" step="0.05"></div>
+      <div class="row"><label for="sk-prof">Profil de voix</label><select id="sk-prof"><option value="">Personnalisé</option><option value="0.55|1">Seeker (par défaut)</option><option value="0.35|0.9">Grave et posé</option><option value="0.3|0.8">Très grave, lent (IA froide)</option><option value="1|1">Neutre</option><option value="1.3|1.1">Aiguë et vive</option></select><label for="sk-vpick">Voix de Seeker</label><select id="sk-vpick"><option value="">Automatique</option></select><label for="sk-pitch">Voix : grave ↔ aiguë</label><input id="sk-pitch" type="range" min="0.3" max="1.4" step="0.05"><label for="sk-rate">Voix : lente ↔ rapide</label><input id="sk-rate" type="range" min="0.7" max="1.3" step="0.05"></div>
       <div class="row btns"><button type="button" id="sk-test">Tester la voix</button><button type="button" id="sk-clear">Effacer la conversation</button><button type="button" id="sk-export">Exporter mes changements</button></div>
     </details>
   </div>
@@ -2833,8 +2833,10 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   $("sk-voice").onchange=function(e){mgSave("voice",e.target.checked);};
   $("sk-sound").onchange=function(e){mgSave("sound",e.target.checked);};
   $("sk-vibe").onchange=function(e){mgSave("vibe",e.target.checked);};
-  $("sk-pitch").oninput=function(e){s(K.pitch,e.target.value);};
-  $("sk-rate").oninput=function(e){s(K.rate,e.target.value);};
+  function syncProf(){var pr=$("sk-prof");if(!pr)return;var k=parseFloat($("sk-pitch").value)+"|"+parseFloat($("sk-rate").value);pr.value="";[].slice.call(pr.options).forEach(function(o){if(o.value&&o.value===k)pr.value=o.value;});}
+  if($("sk-prof")){syncProf();$("sk-prof").onchange=function(e){var v=e.target.value;if(!v)return;var a=v.split("|");$("sk-pitch").value=a[0];$("sk-rate").value=a[1];s(K.pitch,a[0]);s(K.rate,a[1]);speak("Constantes stables. Je suis là, Exo.");};}
+  $("sk-pitch").oninput=function(e){s(K.pitch,e.target.value);syncProf();};
+  $("sk-rate").oninput=function(e){s(K.rate,e.target.value);syncProf();};
   $("sk-test").onclick=function(){speak("Constantes stables. Je suis là, Exo.");};
   $("sk-clear").onclick=function(){hist=[];s(K.hist,null);LOG.textContent="";};
   $("sk-export").onclick=function(){var blob=new Blob([JSON.stringify(window.__mgOverlay?__mgOverlay():{},null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mobiglas-changements.json";document.body.appendChild(a);a.click();a.remove();};
