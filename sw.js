@@ -1,4 +1,4 @@
-const V="mg-v25";
+const V="mg-v27";
 const SHELL=["./","index.html","data.json","manifest.webmanifest","icon-192.png","icon-512.png","corsair.webp","f7c.webp","vulture.webp","exo.webp","pulse.webp","galactapedia-fr.json"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V&&k!=="mg-fonts").map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
