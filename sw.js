@@ -1,5 +1,5 @@
-const V="mg-v18";
-const SHELL=["./","index.html","data.json","manifest.webmanifest","icon-192.png","icon-512.png","corsair.webp","f7c.webp","vulture.webp","exo.webp"];
+const V="mg-v20";
+const SHELL=["./","index.html","data.json","manifest.webmanifest","icon-192.png","icon-512.png","corsair.webp","f7c.webp","vulture.webp","exo.webp","pulse.webp"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V&&k!=="mg-fonts").map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener("fetch",e=>{const u=new URL(e.request.url);if(e.request.method!=="GET")return;

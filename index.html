@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>mobiGlas · Exo</title>
-<meta name="theme-color" content="#051620">
+<meta name="theme-color" content="#061b26">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -532,7 +532,7 @@ h2,.d-head h2{letter-spacing:.05em}
 @media (prefers-reduced-motion:reduce){.map-stage svg.zin,.map-stage svg.zout,.tab-panel.mg-flick{animation:none}}
 
 /* ===== Démarrage ===== */
-#mg-boot{position:fixed;inset:0;z-index:100;background:linear-gradient(#051620,rgba(5,22,32,0) 110px),radial-gradient(ellipse at 50% 40%,#08324a 0%,#041622 45%,#020a10 80%);color:#bff6ff;display:flex;flex-direction:column;justify-content:space-between;padding:calc(48px + env(safe-area-inset-top,0px)) 26px 40px;font-family:"Chakra Petch",sans-serif;transition:opacity .5s ease,filter .5s ease}
+#mg-boot{position:fixed;inset:0;z-index:100;background:linear-gradient(#061b26,rgba(6,27,38,0) 110px),radial-gradient(ellipse at 50% 40%,#08324a 0%,#041622 45%,#020a10 80%);color:#bff6ff;display:flex;flex-direction:column;justify-content:space-between;padding:calc(48px + env(safe-area-inset-top,0px)) 26px 40px;font-family:"Chakra Petch",sans-serif;transition:opacity .5s ease,filter .5s ease}
 #mg-boot.out{opacity:0;filter:blur(8px) brightness(1.6);pointer-events:none}
 #mg-boot .b-top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#4fb7c9}
 #mg-boot .b-mid{display:flex;flex-direction:column;align-items:center;gap:22px}
@@ -941,7 +941,11 @@ footer.end{display:none!important}
 .sp-list{padding-bottom:20px}.sp-list .sp-une{height:auto;min-height:0}.sp-open .bk{margin-inline:0}.sp-open .sp-host{flex:1}
 
 /* fondu sous la barre d etat : meme couleur que theme-color, sans coupure visible */
-html::after{content:"";position:fixed;top:0;left:0;right:0;height:56px;z-index:-1;pointer-events:none;background:linear-gradient(#051620,rgba(5,22,32,0))}
+html::after{content:"";position:fixed;top:0;left:0;right:0;height:56px;z-index:-1;pointer-events:none;background:linear-gradient(#061b26,rgba(6,27,38,0))}
+
+/* option 2 : plus lumineux (valide par le joueur le 2 oct. 2026) */
+:root{--dim:#d2eef3 !important;--faint:#9ccbd8 !important;--line:#2a7590 !important;--hull:#08263a !important;--panel:#0b3550 !important;--void:#04141f !important}
+#mg-stars{filter:brightness(1.6)}
 </style>
 </head>
 <body>

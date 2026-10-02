@@ -193,6 +193,9 @@
   },
   "ct-exo": {
    "asset": "exo.webp"
+  },
+  "ship-pulse": {
+   "asset": "pulse.webp"
   }
  }
 }
