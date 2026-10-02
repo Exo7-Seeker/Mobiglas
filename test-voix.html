@@ -25,7 +25,7 @@ const FALL=["fr_FR-siwis-medium","fr_FR-tom-medium","fr_FR-upmc-medium","fr_FR-g
 async function init(){
   log("Chargement du moteur de voix (première fois : peut prendre un moment)…");
   try{
-    tts=await import("https://esm.sh/@mintplex-labs/piper-tts-web");
+    tts=await import("https://esm.sh/@mintplex-labs/piper-tts-web?deps=onnxruntime-web@1.18.0");
   }catch(e){log("Échec du chargement du moteur : "+e.message+"\nEnvoie-moi une capture de cet écran.");return;}
   let list=[];
   try{const v=await tts.voices();const a=Array.isArray(v)?v:Object.values(v);
