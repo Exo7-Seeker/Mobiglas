@@ -3759,7 +3759,7 @@ window.AMBIANCE={
   /* ---------- micro ---------- */
   /* ---------- reconnaissance vocale : réglages communs ---------- */
   var BIAS=["Seeker","Exo","Lorville","Hurston","Stanton","Pyro","Nyx","Levski","Orison","Area18","ArcCorp","microTech","New Babbage","Corsair","Vulture","Hornet","Pulse","Teasa","Daymar","Yela","Cellin","Aberdeen","Grim HEX","Jumptown","Klescher","aUEC","CrimeStat","quantique","Spectrum","mobiGlas","Codex","hangar","journal","Banu","Xi'an","Vanduul","Tevarin","Nine Tails","XenoThreat","salvage","RMC"];
-  var FIXES=[[/\b(?:sikeu?r|siqueu?r|sic+ke?u?r|seeke?u?r|s[iy]ck?ar|ci(?:c|qu)e?u?r|si ?keur|seek heure|c'est que heure|(?:six|sis|sics?|si|ci|cis|sik|sick|sique|seak)[ -]?(?:c[oœ]e?urs?|queu?rs?|keu?rs?|kers?))\b/gi,"Seeker"],[/\b(?:exau|exo s|ex[oô]s?)\b/gi,"Exo"],[/\b(?:lor ?ville|laurville)\b/gi,"Lorville"],[/\b(?:area|aréa|aria|ariah) ?(?:18|dix[- ]?huit)\b/gi,"Area18"],[/\b(?:or ?i[sz]on|orrison)\b/gi,"Orison"],[/\b(?:stan ?ton|stanthon)\b/gi,"Stanton"],[/\b(?:micro ?tech|micro tèque)\b/gi,"microTech"],[/\b(?:arc ?corp|arque ?corp)\b/gi,"ArcCorp"],[/\b(?:vulture|vultur|vulteur)\b/gi,"Vulture"],[/\b(?:cors[eè]re?)\b/gi,"Corsair"],[/\b(?:hornette?|horn[eè]t)\b/gi,"Hornet"],[/\b(?:pyro|piro)\b/gi,"Pyro"],[/\b(?:levski|lev ?ski|lefski)\b/gi,"Levski"],[/\b(?:a ?u ?e ?c|auec|oweck)\b/gi,"aUEC"],[/\b(?:crime ?stat|crime ?stats)\b/gi,"CrimeStat"]];
+  var FIXES=[[/\b(?:sikeu?r|siqueu?r|sic+ke?u?r|seeke?u?r|s[iy]ck?ar|ci(?:c|qu)e?u?r|si ?keur|seek heure|c'est que heure|(?:six|6|sis|sics?|si|ci|cis|sik|sick|sique|seak)[ -]?(?:c[oœ]e?urs?|queu?rs?|keu?rs?|kers?))\b/gi,"Seeker"],[/\b(?:exau|exo s|ex[oô]s?)\b/gi,"Exo"],[/\b(?:lor ?ville|laurville)\b/gi,"Lorville"],[/\b(?:area|aréa|aria|ariah) ?(?:18|dix[- ]?huit)\b/gi,"Area18"],[/\b(?:or ?i[sz]on|orrison)\b/gi,"Orison"],[/\b(?:stan ?ton|stanthon)\b/gi,"Stanton"],[/\b(?:micro ?tech|micro tèque)\b/gi,"microTech"],[/\b(?:arc ?corp|arque ?corp)\b/gi,"ArcCorp"],[/\b(?:vulture|vultur|vulteur)\b/gi,"Vulture"],[/\b(?:cors[eè]re?)\b/gi,"Corsair"],[/\b(?:hornette?|horn[eè]t)\b/gi,"Hornet"],[/\b(?:pyro|piro)\b/gi,"Pyro"],[/\b(?:levski|lev ?ski|lefski)\b/gi,"Levski"],[/\b(?:a ?u ?e ?c|auec|oweck)\b/gi,"aUEC"],[/\b(?:crime ?stat|crime ?stats)\b/gi,"CrimeStat"]];
   function fixNames(t){FIXES.forEach(function(f){t=t.replace(f[0],f[1]);});return t;}
   function mkRec(cont){var SRc=window.SpeechRecognition||window.webkitSpeechRecognition,r=new SRc();r.lang="fr-FR";r.interimResults=true;r.continuous=!!cont;try{r.maxAlternatives=5;}catch(_){}
     try{if(typeof SpeechRecognitionPhrase!=="undefined"&&"phrases" in r){r.phrases=BIAS.map(function(p){return new SpeechRecognitionPhrase(p,p==="Seeker"?8:3);});}}catch(_){}return r;}
@@ -3820,25 +3820,33 @@ window.AMBIANCE={
       error:function(){hfMode("","Rien capté. Touche pour réessayer");},
       end:function(fin){if(fin){HH.textContent="« "+fin+" »";hfMode("thinking","Analyse…");ask(fin);}else{hfMode("",wake?idleTxt():"Touche l'écran pour parler");if(wake)startWake();}}});});
   /* écoute continue avec le mot d'appel */
-  var WAKE=/(?:^|[\s,.;:!?])(?:seeker|seek|siker|sikeur|sikeure|sicker|sika|sikar|seekeur|seekeure|cicker|cicker|ciqueur|siqueur|sic?queur|sicker|si keur|si queur|seek heure|c'est que heure|(?:six|sis|sics?|si|ci|cis|sik|sick|sique|seak)[ -]?(?:c[oœ]e?urs?|queu?rs?|keu?rs?|kers?))\b[\s,.:;!?-]*/i;
+  var WAKE=/(?:^|[\s,.;:!?])(?:seeker|seek|siker|sikeur|sikeure|sicker|sika|sikar|seekeur|seekeure|cicker|cicker|ciqueur|siqueur|sic?queur|sicker|si keur|si queur|seek heure|c'est que heure|(?:six|6|sis|sics?|si|ci|cis|sik|sick|sique|seak)[ -]?(?:c[oœ]e?urs?|queu?rs?|keu?rs?|kers?))\b[\s,.:;!?-]*/i;
   var WAKE_OLD=null;
   function pk(w){w=w.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z]/g,"");if(w.length<4||w.length>9)return"";return w.replace(/ck|qu|ch(?=[aou])/g,"k").replace(/c(?=[aou])/g,"k").replace(/c/g,"s").replace(/[zx]/g,"s").replace(/ph/g,"f").replace(/[aeiouyh]+/g,"").replace(/(.)\1+/g,"$1");}
   function findWake(t){var m=t.match(WAKE);if(m)return m;var re=/[^\s,.;:!?«»"]+/g,w,n=0;while((w=re.exec(t))&&n<4){n++;var kk=pk(w[0]);if(kk==="skr"||(kk==="sk"&&/^(?:se|si|ci|cy|sy)/i.test(w[0])&&w[0].length<=6)){var e=w.index+w[0].length,rest=t.slice(e).match(/^[\s,.:;!?-]*/)[0];var a=[t.slice(w.index,e)+rest];a.index=w.index;return a;}}return null;}
   function wstat(t){var e=$("sk-wakestat");if(e)e.textContent=t||"";}
-  function startWake(){if(!wake||wrec||paused||busy)return;wrec=mkRec(true);wrec.interimResults=false;
-    wrec.onstart=function(){hfMode("wake",idleTxt());wstat("👂 J'écoute : dis « Seeker… »");};
-    wrec.onresult=function(ev){for(var i=ev.resultIndex;i<ev.results.length;i++){if(!ev.results[i].isFinal)continue;var R=ev.results[i],hit=null,heard=R[0].transcript.trim();
+  function startWake(){if(!wake||wrec||paused||busy)return;var rec=wrec=mkRec(true);rec.interimResults=true;var done={},iT=null,lastR=null,lastIdx=-1;
+    rec.onstart=function(){hfMode("wake",idleTxt());wstat("👂 J'écoute : dis « Seeker… »");};
+    /* traite une phrase (finale ou, faute de mieux, intermédiaire) */
+    function handle(R){var hit=null,heard=R[0].transcript.trim();if(!heard)return;
       for(var k=0;k<R.length&&!hit;k++){var tk=R[k].transcript.trim(),m=findWake(tk);if(m)hit={t:tk,cmd:tk.slice(m.index+m[0].length).trim()};}
       window.__skAlts=[];if(hit){for(var k2=0;k2<R.length&&k2<4;k2++){var t2=R[k2].transcript.trim(),m2=findWake(t2);if(m2){var c2=t2.slice(m2.index+m2[0].length).trim();if(c2&&nrm(c2)!==nrm(hit.cmd))window.__skAlts.push(c2);}}}
       if(hit){wstat("");var cmd=fixNames(hit.cmd);HH.textContent="« "+fixNames(hit.t)+" »";if(!hfOn)open();if(cmd.length>1){stopWake();hfMode("thinking","Analyse…");mgFx.beep();ask(cmd);}else{mgFx.beep();hfMode("wake","Oui ?");armCmd();}}
-      else if(hfOn&&!cmdWait){var free=fixNames(heard).trim();if(free.split(/\s+/).length<2&&free.length<6){continue;}
+      else if(hfOn&&!cmdWait){var free=fixNames(heard).trim();if(free.split(/\s+/).length<2&&free.length<6)return;
         window.__skAlts=[];for(var k3=1;k3<R.length&&k3<4;k3++){var t3=R[k3].transcript.trim();if(t3&&nrm(t3)!==nrm(heard))window.__skAlts.push(fixNames(t3));}
         HH.textContent="« "+free+" »";stopWake();hfMode("thinking","Analyse…");mgFx.beep();ask(free);}
       else if(!cmdWait){HH.textContent="… "+fixNames(heard)+" (pas de « Seeker »)";wstat("Entendu : « "+cut(fixNames(heard),50)+" » — pas de « Seeker »");}
-      else if(cmdWait){HH.textContent="« "+fixNames(heard)+" »";cmdWait=false;stopWake();hfMode("thinking","Analyse…");ask(fixNames(heard));}}};
-    wrec.onerror=function(ev){if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){wake=false;WK.checked=false;hfMode("","Micro refusé : autorise-le dans Chrome");wstat("Micro refusé : autorise-le dans Chrome (cadenas de l'adresse → Micro)");}else if(ev.error!=="no-speech"&&ev.error!=="aborted"){wstat("Écoute interrompue ("+ev.error+") : nouvel essai…");}};
-    wrec.onend=function(){wrec=null;if(wake&&!paused&&!busy)setTimeout(startWake,80);};
-    try{wrec.start();}catch(_){wrec=null;}}
+      else if(cmdWait){HH.textContent="« "+fixNames(heard)+" »";cmdWait=false;stopWake();hfMode("thinking","Analyse…");ask(fixNames(heard));}}
+    rec.onresult=function(ev){
+      for(var i=ev.resultIndex;i<ev.results.length;i++){var R=ev.results[i];
+        if(R.isFinal){clearTimeout(iT);if(!done[i]){done[i]=1;handle(R);if(wrec!==rec)return;}}
+        else{lastR=R;lastIdx=i;if(!done[i]){var tt=R[0].transcript.trim();if(tt&&!cmdWait)wstat("Entendu : « "+cut(fixNames(tt),50)+" »");
+          clearTimeout(iT);(function(RR,ii){iT=setTimeout(function(){if(wrec!==rec||done[ii])return;done[ii]=1;handle(RR);},1100);})(R,i);}}}};
+    rec.onerror=function(ev){if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){wake=false;WK.checked=false;hfMode("","Micro refusé : autorise-le dans Chrome");wstat("Micro refusé : autorise-le dans Chrome (cadenas de l'adresse → Micro)");}else if(ev.error!=="no-speech"&&ev.error!=="aborted"){wstat("Écoute interrompue ("+ev.error+") : nouvel essai…");}};
+    rec.onend=function(){clearTimeout(iT);if(wrec===rec)wrec=null;if(lastR&&!done[lastIdx]){done[lastIdx]=1;try{handle(lastR);}catch(_){}}if(wake&&!paused&&!busy&&!wrec)setTimeout(startWake,30);};
+    try{rec.start();}catch(_){if(wrec===rec)wrec=null;setTimeout(startWake,500);}}
+  /* filet de sécurité : si l'écoute est tombée sans prévenir, on la relance */
+  setInterval(function(){if(wake&&!wrec&&!paused&&!busy&&!window.__skSpeaking&&!document.hidden){try{startWake();}catch(_){}}},4000);
   /* « Seeker » seul : la phrase suivante est la commande */
   var cmdWait=false,cmdT=null;function armCmd(){cmdWait=true;clearTimeout(cmdT);cmdT=setTimeout(function(){cmdWait=false;if(hfOn&&wake)hfMode("wake",idleTxt());},7000);}
   /* écoute « Seeker » partout dans l'appli (sans écran mains libres) quand l'option est active */
