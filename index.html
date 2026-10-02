@@ -1169,8 +1169,8 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
 
 /* Hangar : bandeau des vaisseaux défilant sur le côté */
 @media (max-width:820px){
-  #hangar-mount .inv-group{display:flex!important;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
-  #hangar-mount .inv-item{flex:0 0 96px;scroll-snap-align:center}
+  #hangar-mount .inv-group{display:flex!important;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-y;user-select:none}
+  #hangar-mount .inv-item{flex:0 0 96px;touch-action:pan-y}
 }
 </style>
 </head>
@@ -2452,11 +2452,6 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
     function go(i){i=Math.max(0,Math.min(N-1,i));if(i===cur)return;var dir=i>cur?1:-1;cur=i;bk.dataset.dir=dir;place(true);if(window.mgFx)mgFx.tick();}
     bk.addEventListener("click",function(e){var b=e.target.closest("[data-d],[data-toc],[data-goto]");if(!b)return;
       if(b.dataset.d)go(cur+parseInt(b.dataset.d,10));else if(b.hasAttribute("data-toc")){if(opt.tocPage>=0)go(opt.tocPage||0);}else go(marks[b.dataset.goto]||0);});
-    var sx=null,sy=null,st=0;view.style.touchAction="pan-y";
-    view.addEventListener("pointerdown",function(e){sx=e.clientX;sy=e.clientY;st=Date.now();});
-    view.addEventListener("pointerup",function(e){if(sx===null)return;var dx=e.clientX-sx,dy=e.clientY-sy;sx=null;
-      if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.8){go(cur+(dx<0?1:-1));return;}
-      if(Math.abs(dx)<8&&Math.abs(dy)<8&&Date.now()-st<400&&!e.target.closest("a,button,.term,[data-goto]")){var r=view.getBoundingClientRect(),x=e.clientX-r.left;if(x>r.width*0.8)go(cur+1);else if(x<r.width*0.2)go(cur-1);}});
     var rT=null;window.addEventListener("resize",function(){clearTimeout(rT);rT=setTimeout(function(){if(bk.isConnected&&panel.offsetParent&&(view.clientWidth!==W))layout();},200);});
     window.addEventListener("hashchange",function(){if(bk.isConnected&&!panel.hidden)setTimeout(function(){if(!W||view.clientWidth!==W||!track.children.length)layout();},50);});
     if(!panel.hidden)setTimeout(layout,40);
@@ -3018,6 +3013,13 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
     get(sid).then(function(buf){if(!buf)return;var head=det.querySelector(".d-head");if(!head)return;var old=det.querySelector(".h3d-wrap");if(old)old.remove();
       var w=document.createElement("div");w.className="h3d-wrap";head.insertAdjacentElement("afterend",w);var el=document.createElement("div");w.appendChild(el);cur=sid;window.mgHolo3D(el,buf,SHIPS[sid]||sid);
       var img=det.querySelector(".slot,.img-slot,figure");if(img&&img!==w)img.classList.add("h3d-after");}).catch(function(){});}
+  /* bandeau des vaisseaux : glisser au doigt (ou à la souris) */
+  var drag=null,sup=false;
+  mount.addEventListener("pointerdown",function(e){var g=e.target.closest&&e.target.closest(".inv-side .inv-group");if(!g||(e.pointerType==="mouse"&&e.button!==0))return;drag={g:g,x:e.clientX,y:e.clientY,l:g.scrollLeft,m:false};});
+  mount.addEventListener("pointermove",function(e){if(!drag)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.m){if(Math.abs(dx)>6&&Math.abs(dx)>Math.abs(dy))drag.m=true;else return;}drag.g.scrollLeft=drag.l-dx;});
+  function endDrag(){if(drag&&drag.m){sup=true;setTimeout(function(){sup=false;},60);}drag=null;}
+  mount.addEventListener("pointerup",endDrag);mount.addEventListener("pointercancel",function(){drag=null;});
+  mount.addEventListener("click",function(e){if(sup){e.stopPropagation();e.preventDefault();sup=false;}},true);
   shorts();
   new MutationObserver(function(){shorts();setTimeout(function(){inject(false);},30);}).observe(mount,{childList:true,subtree:true});
   window.addEventListener("hashchange",function(){if(location.hash==="#hangar")setTimeout(function(){inject(false);},80);});
@@ -3044,7 +3046,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
 <script>/* Balayage : gauche/droite change d'onglet ; sur la liste du Hangar ou des Contacts, change de vaisseau ou de contact */
 (function(){
   var X0=0,Y0=0,T0=0,tgt=null,on=false,PG=null;
-  var BLOCK='input,textarea,select,[contenteditable],.bk,.rv-view,.sp-open,.map-stage,.map-list svg,.h3d,canvas,.cx-rail,.cx-fiche,.cx-az,.term-pop,.sk-log,#sk-log,details[open] .sk-set,button[role="slider"]';
+  var BLOCK='input,textarea,select,[contenteditable],.rv-view,.sp-open,.map-stage,.map-list svg,.h3d,canvas,.cx-rail,.cx-fiche,.cx-az,.term-pop,.sk-log,#sk-log,details[open] .sk-set,button[role="slider"]';
   function hScroll(el){while(el&&el!==document.body){if(el.scrollWidth>el.clientWidth+4){var o=getComputedStyle(el).overflowX;if(o==="auto"||o==="scroll")return true;}el=el.parentElement;}return false;}
   function tabs(){return [].slice.call(document.querySelectorAll("a.tab[data-tab]"));}
   function curIdx(a){for(var i=0;i<a.length;i++)if(a[i].getAttribute("aria-selected")==="true")return i;return -1;}
