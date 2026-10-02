@@ -3823,8 +3823,8 @@ window.AMBIANCE={
   /* écoute continue avec le mot d'appel */
   var WAKE=/(?:^|[\s,.;:!?])(?:seeker|seek|siker|sikeur|sikeure|sicker|sika|sikar|seekeur|seekeure|cicker|cicker|ciqueur|siqueur|sic?queur|sicker|si keur|si queur|seek heure|c'est que heure|(?:six|6|sis|sics?|si|ci|cis|sik|sick|sique|seak)[ -]?(?:c[oœ]e?urs?|queu?rs?|keu?rs?|kers?))\b[\s,.:;!?-]*/i;
   var WAKE_OLD=null;
-  function pk(w){w=w.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z]/g,"");if(w.length<4||w.length>9)return"";return w.replace(/ck|qu|ch(?=[aou])/g,"k").replace(/c(?=[aou])/g,"k").replace(/c/g,"s").replace(/[zx]/g,"s").replace(/ph/g,"f").replace(/[aeiouyh]+/g,"").replace(/(.)\1+/g,"$1");}
-  function findWake(t){var m=t.match(WAKE);if(m)return m;var re=/[^\s,.;:!?«»"]+/g,w,n=0;while((w=re.exec(t))&&n<4){n++;var kk=pk(w[0]);if(kk==="skr"||(kk==="sk"&&/^(?:se|si|ci|cy|sy)/i.test(w[0])&&w[0].length<=6)){var e=w.index+w[0].length,rest=t.slice(e).match(/^[\s,.:;!?-]*/)[0];var a=[t.slice(w.index,e)+rest];a.index=w.index;return a;}}return null;}
+  function pk(w){w=w.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z]/g,"");if(w.length<4||w.length>10)return"";return w.replace(/ck|qu|ch(?=[aou])/g,"k").replace(/c(?=[aou])/g,"k").replace(/c/g,"s").replace(/[zx]/g,"s").replace(/ph/g,"f").replace(/[aeiouyh]+/g,"").replace(/(.)\1+/g,"$1");}
+  function findWake(t){var m=t.match(WAKE);if(m)return m;var re=/[^\s,.;:!?«»"]+/g,w,n=0;while((w=re.exec(t))&&n<4){n++;var kk=pk(w[0]);if(kk==="skr"||kk==="sgr"||kk==="stkr"||kk==="stkrs"||kk==="sgrs"||(kk==="sk"&&/^(?:se|si|ci|cy|sy)/i.test(w[0])&&w[0].length<=6)){var e=w.index+w[0].length,rest=t.slice(e).match(/^[\s,.:;!?-]*/)[0];var a=[t.slice(w.index,e)+rest];a.index=w.index;return a;}}return null;}
   var gesture=false;document.addEventListener("pointerdown",function(){gesture=true;},{capture:true});
   var WL=[],WT0=Date.now();function wlog(x){WL.push(((Date.now()-WT0)/1000).toFixed(1)+"s "+x);if(WL.length>120)WL.shift();}window.__wlog=wlog;
   function wstat(t){var e=$("sk-wakestat");if(e)e.textContent=t||"";}
