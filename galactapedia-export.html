@@ -1,0 +1,16 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Export Galactapedia</title>
+<style>body{margin:0;background:#061b26;color:#d2eef3;font:16px system-ui;padding:24px}button{background:#2a7590;color:#fff;border:0;border-radius:8px;padding:14px 22px;font-size:17px}#bar{height:10px;background:#0b3550;border-radius:5px;margin:18px 0}#bar i{display:block;height:100%;width:0;background:#6fd3e6;border-radius:5px}#log{font-size:14px;color:#9ccbd8;white-space:pre-wrap}</style></head><body>
+<h2>Export Galactapedia</h2><p>Cette page télécharge les articles de la Galactapedia (source : API du Star Citizen Wiki) et te donne un fichier <b>galactapedia.json</b> à m'envoyer dans le chat.</p>
+<button id="go">Lancer l'export</button><div id="bar"><i></i></div><div id="log"></div><p id="dl"></p>
+<script>
+const API="https://api.star-citizen.wiki/api/galactapedia",$=s=>document.querySelector(s),log=t=>$("#log").textContent=t;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function page(n){for(let t=0;t<5;t++){try{const r=await fetch(API+"?page[size]=100&page[number]="+n,{headers:{Accept:"application/json"}});
+ if(r.status===429){await sleep(4000*(t+1));continue;}if(!r.ok)throw new Error("HTTP "+r.status);return await r.json();}catch(e){if(t===4)throw e;await sleep(1500);}}}
+$("#go").onclick=async()=>{$("#go").disabled=true;const out=[];let n=1,last=1;
+ try{do{const j=await page(n);last=(j.meta&&j.meta.last_page)||last;
+  (j.data||[]).forEach(a=>{const tr=a.translations||{};out.push({id:a.id,title:a.title,slug:a.slug,cat:a.category,type:a.type,tags:a.tag||a.tags||[],img:a.thumbnail||null,en:tr.en_EN||"",fr:tr.fr_FR||"",rsi:a.rsi_url||null});});
+  $("#bar i").style.width=Math.round(n/last*100)+"%";log("Page "+n+" / "+last+" · "+out.length+" articles");n++;await sleep(700);}while(n<=last);
+  const blob=new Blob([JSON.stringify(out)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="galactapedia.json";a.textContent="Télécharger galactapedia.json ("+out.length+" articles)";a.style.cssText="color:#6fd3e6;font-size:18px";$("#dl").appendChild(a);a.click();log("Terminé : "+out.length+" articles.");
+ }catch(e){log("Échec : "+e.message+"\nSi c'est « Failed to fetch », l'API refuse l'accès depuis cette page.");$("#go").disabled=false;}};
+</script></body></html>
