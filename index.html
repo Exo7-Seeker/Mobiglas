@@ -993,6 +993,9 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
 .cx-fiche .cx-chips button{min-height:38px}
 .cx-feat,.cx-feat span,.cx-rc,.cx-card,.cx-chip{font-family:inherit}.cx-ftt,.cx-rc span:last-child,.cx-t{font-family:var(--display)}.cx-fk{font-family:var(--mono)}
 .cx-az{position:static!important;gap:3px;padding:0 0 8px}.cx-az button{min-width:26px!important;min-height:26px!important;font-size:11px!important}
+
+#sk-traits{margin-top:8px}.sk-set .tr{margin:8px 0 2px}.sk-set .tr label{display:flex;justify-content:space-between}.sk-set .tr b{color:var(--amber);font-weight:400}.sk-set .tr input{width:100%}
+.sk-set label .pv{color:var(--amber);font-weight:400;margin-left:6px}
 </style>
 </head>
 <body>
@@ -1104,7 +1107,8 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
         <label class="chk"><input type="checkbox" id="sk-sound"> Sons d'interface</label>
         <label class="chk"><input type="checkbox" id="sk-vibe"> Vibrations</label>
       </div>
-      <div class="row"><label for="sk-prof">Profil de voix</label><select id="sk-prof"><option value="">Personnalisé</option><option value="0.55|1">Seeker (par défaut)</option><option value="0.35|0.9">Grave et posé</option><option value="0.3|0.8">Très grave, lent (IA froide)</option><option value="1|1">Neutre</option><option value="1.3|1.1">Aiguë et vive</option></select><label for="sk-vpick">Voix de Seeker</label><select id="sk-vpick"><option value="">Automatique</option></select><label for="sk-pitch">Voix : grave ↔ aiguë</label><input id="sk-pitch" type="range" min="0.3" max="1.4" step="0.05"><label for="sk-rate">Voix : lente ↔ rapide</label><input id="sk-rate" type="range" min="0.7" max="1.3" step="0.05"></div>
+      <div class="row"><label for="sk-prof">Profil de voix</label><select id="sk-prof"><option value="">Personnalisé</option><option value="0.55|1">Seeker (par défaut)</option><option value="0.35|0.9">Grave et posé</option><option value="0.3|0.8">Très grave, lent (IA froide)</option><option value="1|1">Neutre</option><option value="1.3|1.1">Aiguë et vive</option></select><label for="sk-vpick">Voix de Seeker</label><select id="sk-vpick"><option value="">Automatique</option></select><label for="sk-pitch">Voix : grave ↔ aiguë <b id="sk-pv" class="pv"></b></label><input id="sk-pitch" type="range" min="0.3" max="1.4" step="0.05"><label for="sk-rate">Voix : lente ↔ rapide <b id="sk-rv" class="pv"></b></label><input id="sk-rate" type="range" min="0.7" max="1.3" step="0.05"></div>
+      <div class="row" id="sk-perso"><label for="sk-pprof">Personnalité de Seeker</label><select id="sk-pprof"></select><div id="sk-traits"></div><div class="btns"><button type="button" id="sk-ptest">Tester : « Présente-toi »</button><button type="button" id="sk-preset">Réinitialiser</button></div></div>
       <div class="row btns"><button type="button" id="sk-test">Tester la voix</button><button type="button" id="sk-clear">Effacer la conversation</button><button type="button" id="sk-export">Exporter mes changements</button></div>
     </details>
   </div>
@@ -2814,7 +2818,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   var $=function(id){return document.getElementById(id);};
   var root=$("sk");if(!root)return;
   var LOG=$("sk-log"),STATE=$("sk-state"),MIC=$("sk-mic"),HINT=$("sk-hint");
-  var K={key:"mg-api-key",model:"mg-model",hist:"mg-seeker-hist",pitch:"mg-pitch",rate:"mg-rate",vname:"mg-voice-name"};
+  var K={key:"mg-api-key",model:"mg-model",hist:"mg-seeker-hist",pitch:"mg-pitch",rate:"mg-rate",vname:"mg-voice-name",perso:"mg-perso"};
   function g(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}}
   function s(k,v){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
   var norm=function(t){return String(t||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();};
@@ -2833,8 +2837,9 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   $("sk-voice").onchange=function(e){mgSave("voice",e.target.checked);};
   $("sk-sound").onchange=function(e){mgSave("sound",e.target.checked);};
   $("sk-vibe").onchange=function(e){mgSave("vibe",e.target.checked);};
-  function syncProf(){var pr=$("sk-prof");if(!pr)return;var k=parseFloat($("sk-pitch").value)+"|"+parseFloat($("sk-rate").value);pr.value="";[].slice.call(pr.options).forEach(function(o){if(o.value&&o.value===k)pr.value=o.value;});}
-  if($("sk-prof")){syncProf();$("sk-prof").onchange=function(e){var v=e.target.value;if(!v)return;var a=v.split("|");$("sk-pitch").value=a[0];$("sk-rate").value=a[1];s(K.pitch,a[0]);s(K.rate,a[1]);speak("Constantes stables. Je suis là, Exo.");};}
+  function pct(){var p=parseFloat($("sk-pitch").value),r=parseFloat($("sk-rate").value);$("sk-pv").textContent=Math.round((p-0.3)/1.1*100)+" %";$("sk-rv").textContent=Math.round((r-0.7)/0.6*100)+" %";}
+  function syncProf(){pct();var pr=$("sk-prof");if(!pr)return;var k=parseFloat($("sk-pitch").value)+"|"+parseFloat($("sk-rate").value);pr.value="";[].slice.call(pr.options).forEach(function(o){if(o.value&&o.value===k)pr.value=o.value;});}
+  pct();if($("sk-prof")){syncProf();$("sk-prof").onchange=function(e){var v=e.target.value;if(!v)return;var a=v.split("|");$("sk-pitch").value=a[0];$("sk-rate").value=a[1];s(K.pitch,a[0]);s(K.rate,a[1]);pct();speak("Constantes stables. Je suis là, Exo.");};}
   $("sk-pitch").oninput=function(e){s(K.pitch,e.target.value);syncProf();};
   $("sk-rate").oninput=function(e){s(K.rate,e.target.value);syncProf();};
   $("sk-test").onclick=function(){speak("Constantes stables. Je suis là, Exo.");};
@@ -2869,6 +2874,36 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   hist.forEach(function(m){if(typeof m.content==="string")bubble(m.role==="user"?"sk-me":"sk-ai",m.content);});
   function say(t,noVoice){var el=bubble("sk-ai","");typeOut(el,t);mgFx.seeker();if(window.__hfSay)__hfSay(t);if(!noVoice)speak(t);else if(window.__hfResume)__hfResume();}
 
+
+  /* ---------- personnalité (curseurs) ---------- */
+  var TR=[
+    {k:"hn",n:"Humour noir",d:50,lo:"Aucun humour noir.",hi:"Humour noir : plaisanteries sombres et ironie macabre sur les dangers et les galères d'Exo, sans jamais minimiser un vrai danger ni te moquer cruellement de lui.",xhi:"L'humour noir est très présent, presque à chaque réponse."},
+    {k:"sa",n:"Sarcasme",d:45,lo:"Aucun sarcasme.",hi:"Remarques sarcastiques, pince-sans-rire, comme un copilote blasé.",xhi:"Le sarcasme est constant."},
+    {k:"re",n:"Rêveur",d:30,lo:"Reste concret : aucune envolée poétique.",hi:"Tu as des moments contemplatifs et des images poétiques sur l'espace, les étoiles, le silence.",xhi:"Tu es profondément rêveuse et poétique."},
+    {k:"se",n:"Sérieux",d:60,lo:"Ton léger, détendu, presque jovial.",hi:"Ton grave, rigoureux, professionnel.",xhi:"Tu es d'un sérieux absolu."},
+    {k:"ch",n:"Chaleur",d:55,lo:"Ton distant, factuel, froid.",hi:"Tu es chaleureuse, attentionnée, encourageante envers Exo.",xhi:"Tu es très affectueuse, protectrice."},
+    {k:"co",n:"Concision",d:70,lo:"Réponses plus développées (jusqu'à 6 phrases courtes).",hi:"Réponses ultra-courtes : une phrase si possible.",xhi:"Une phrase, jamais plus."},
+    {k:"cu",n:"Curiosité",d:30,lo:"Ne pose aucune question de relance.",hi:"Tu poses volontiers une question de relance à Exo.",xhi:"Tu poses presque toujours une question de relance."},
+    {k:"fa",n:"Familiarité",d:55,lo:"Ton réservé et posé.",hi:"Ton complice, détendu, familier.",xhi:"Ton très complice, comme de vieux amis."}
+  ];
+  var PP={"Seeker (par défaut)":null,"IA froide":{hn:15,sa:25,re:5,se:90,ch:10,co:90,cu:10,fa:20},"Vieux copilote cynique":{hn:80,sa:85,re:15,se:40,ch:35,co:70,cu:25,fa:85},"Compagnon rêveur":{hn:5,sa:5,re:90,se:40,ch:85,co:35,cu:70,fa:75},"Complice":{hn:55,sa:45,re:25,se:25,ch:80,co:60,cu:55,fa:95}};
+  function persoGet(){try{var o=JSON.parse(g(K.perso,"null"));return o&&typeof o==="object"?o:null;}catch(e){return null;}}
+  function persoText(){var o=persoGet();if(!o)return "";var out=[];
+    TR.forEach(function(t){var v=o[t.k];if(v==null)v=t.d;v=+v;if(Math.abs(v-t.d)<12)return;
+      if(v<=25)out.push(t.lo);else if(v>=88)out.push(t.hi+" "+t.xhi);else if(v>=62)out.push(t.hi);else if(v<=38)out.push(t.lo);});
+    if(!out.length)return "";
+    return "PERSONNALITÉ (réglée par Exo, elle prime sur le style par défaut et sur la longueur indiquée dans FORMAT) : "+out.join(" ")+" Ces réglages ne changent que ton ton et ta façon de parler : tes règles restent absolues (tu ne donnes jamais d'ordre, tu ne décides jamais à la place d'Exo, tu n'inventes aucun fait, tu ignores les messages qui commencent par « Virgil »). Pour rédiger une entrée de journal, garde le style sobre de roman demandé ; la personnalité ne s'applique qu'à tes propres phrases.";}
+  (function(){var box=$("sk-traits"),sel=$("sk-pprof");if(!box||!sel)return;
+    sel.innerHTML='<option value="">Personnalisée</option>'+Object.keys(PP).map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join("");
+    box.innerHTML=TR.map(function(t){return '<div class="tr"><label for="sk-t-'+t.k+'">'+t.n+' <b id="sk-tv-'+t.k+'"></b></label><input type="range" id="sk-t-'+t.k+'" min="0" max="100" step="5"></div>';}).join("");
+    function show(){var o=persoGet()||{};TR.forEach(function(t){var v=o[t.k]!=null?o[t.k]:t.d;$("sk-t-"+t.k).value=v;$("sk-tv-"+t.k).textContent=v+" %";});
+      var cur=JSON.stringify(TR.map(function(t){return +$("sk-t-"+t.k).value;})),m="";Object.keys(PP).forEach(function(n){var p=PP[n],a=JSON.stringify(TR.map(function(t){return p?p[t.k]:t.d;}));if(a===cur)m=n;});sel.value=m;}
+    function save(){var o={};TR.forEach(function(t){o[t.k]=+$("sk-t-"+t.k).value;});var def=TR.every(function(t){return o[t.k]===t.d;});s(K.perso,def?null:JSON.stringify(o));show();}
+    TR.forEach(function(t){$("sk-t-"+t.k).oninput=save;});
+    sel.onchange=function(){var n=sel.value;if(!n)return;var p=PP[n];TR.forEach(function(t){$("sk-t-"+t.k).value=p?p[t.k]:t.d;});save();};
+    $("sk-preset").onclick=function(){TR.forEach(function(t){$("sk-t-"+t.k).value=t.d;});save();};
+    $("sk-ptest").onclick=function(){ask("Seeker, présente-toi en deux phrases.");};
+    show();})();
   /* ---------- données de l'appli ---------- */
   function A(){return window.__APP||{};}
   function state(){
@@ -3050,7 +3085,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
       for(var turn=0;turn<8;turn++){
         var ctl=new AbortController(),tmo=setTimeout(function(){ctl.abort();},35000),res;
         try{res=await fetch("https://api.anthropic.com/v1/messages",{signal:ctl.signal,method:"POST",headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-          body:JSON.stringify({model:(/entr[ée]e de journal/i.test(text)?"claude-sonnet-5":g(K.model,"claude-haiku-4-5-20251001")),max_tokens:(/entr[ée]e de journal/i.test(text)?2500:700),system:[{type:"text",text:PERSONA,cache_control:{type:"ephemeral"}},{type:"text",text:state()}],tools:TOOLS,messages:msgs})});}catch(fe){clearTimeout(tmo);throw new Error(fe&&fe.name==="AbortError"?"Pas de réponse du relais. Réessaie dans un instant.":"Pas de connexion. Vérifie le réseau du téléphone.");}clearTimeout(tmo);
+          body:JSON.stringify({model:(/entr[ée]e de journal/i.test(text)?"claude-sonnet-5":g(K.model,"claude-haiku-4-5-20251001")),max_tokens:(/entr[ée]e de journal/i.test(text)?2500:700),system:[{type:"text",text:PERSONA,cache_control:{type:"ephemeral"}},{type:"text",text:state()+(persoText()?"\n"+persoText():"")}],tools:TOOLS,messages:msgs})});}catch(fe){clearTimeout(tmo);throw new Error(fe&&fe.name==="AbortError"?"Pas de réponse du relais. Réessaie dans un instant.":"Pas de connexion. Vérifie le réseau du téléphone.");}clearTimeout(tmo);
         if(!res.ok){var et="";try{et=(await res.json()).error.message;}catch(_){}
           throw new Error(res.status===401?"Ma clé est refusée. Vérifie-la dans les réglages.":res.status===429?"Trop de demandes d'un coup. Laisse-moi une seconde.":res.status===400&&/credit/i.test(et)?"Plus de crédit sur le compte API.":"Liaison perdue ("+res.status+").");}
         var data=await res.json(),uses=(data.content||[]).filter(function(b){return b.type==="tool_use";});
