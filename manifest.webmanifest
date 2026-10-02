@@ -4,9 +4,8 @@
  "description": "Journal de bord, carte et Seeker, l'IA d'Exo.",
  "start_url": "./",
  "scope": "./",
- "display": "fullscreen",
+ "display": "standalone",
  "display_override": [
-  "fullscreen",
   "standalone"
  ],
  "orientation": "portrait",
