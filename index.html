@@ -1172,6 +1172,8 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
   #hangar-mount .inv-group{display:flex!important;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-y;user-select:none}
   #hangar-mount .inv-item{flex:0 0 96px;touch-action:pan-y}
 }
+
+.sk-wakestat{min-height:16px;margin:2px 0 6px;font:12px/1.3 "IBM Plex Mono",monospace;opacity:.75;text-align:center;color:#9fd6ee}
 </style>
 </head>
 <body>
@@ -1272,6 +1274,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>
       </button>
       <div class="sk-hint" id="sk-hint">Touche pour parler</div>
+      <div class="sk-wakestat" id="sk-wakestat" aria-live="polite"></div>
       <form class="sk-type" id="sk-form"><input id="sk-input" type="text" placeholder="Ou écris à Seeker…" aria-label="Message pour Seeker" autocomplete="off"><button type="submit">Envoyer</button></form>
     </div>
     <details class="sk-set">
@@ -1285,7 +1288,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
         <label class="chk"><input type="checkbox" id="sk-sound"> Sons d'interface</label>
         <label class="chk"><input type="checkbox" id="sk-vibe"> Vibrations</label>
       </div>
-      <div class="row" id="sk-eng-row"><label for="sk-eng">Moteur de voix</label><select id="sk-eng"><option value="phone">Voix du téléphone</option><option value="seeker">Voix Seeker (IA · ~400 Mo la 1re fois)</option></select><div id="sk-seeker-box" style="display:none"><label for="sk-pvoice">Voix de Seeker</label><select id="sk-pvoice"></select><label for="sk-pfx">Filtre de voix</label><select id="sk-pfx"></select><label for="sk-spitch">Voix : grave ↔ aiguë <b id="sk-spv" class="pv"></b></label><input id="sk-spitch" type="range" min="0.75" max="1.25" step="0.01"><label for="sk-srate">Voix : lente ↔ rapide <b id="sk-srv" class="pv"></b></label><input id="sk-srate" type="range" min="0.7" max="1.3" step="0.05"><label for="sk-psteps">Vitesse / qualité de la voix</label><select id="sk-psteps"><option value="2">Très rapide (qualité réduite)</option><option value="3">Rapide</option><option value="5">Qualité maximale (plus lent)</option></select><div class="btns"><button type="button" id="sk-ptest2">Tester cette voix</button></div></div><div id="sk-pstat" style="font-size:12px;opacity:.8;margin-top:6px;line-height:1.4"></div></div>
+      <div class="row" id="sk-eng-row"><label for="sk-eng">Moteur de voix</label><select id="sk-eng"><option value="phone">Voix du téléphone</option><option value="seeker">Voix Seeker (IA · ~400 Mo la 1re fois)</option></select><div id="sk-seeker-box" style="display:none"><label for="sk-pvoice">Voix de Seeker</label><select id="sk-pvoice"></select><label for="sk-pfx">Filtre de voix</label><select id="sk-pfx"></select><label for="sk-spitch">Voix : grave ↔ aiguë <b id="sk-spv" class="pv"></b></label><input id="sk-spitch" type="range" min="0.75" max="1.25" step="0.01"><label for="sk-srate">Voix : lente ↔ rapide <b id="sk-srv" class="pv"></b></label><input id="sk-srate" type="range" min="0.7" max="1.3" step="0.05"><div class="btns"><button type="button" id="sk-ptest2">Tester cette voix</button></div></div><div id="sk-pstat" style="font-size:12px;opacity:.8;margin-top:6px;line-height:1.4"></div></div>
       <div class="row" id="sk-perso"><label for="sk-pprof">Personnalité de Seeker</label><select id="sk-pprof"></select><div class="btns"><button type="button" id="sk-ptest">Tester : « Présente-toi »</button></div></div>
       <div class="row" id="sk-profs"><label for="sk-prsel">Mes profils enregistrés</label><select id="sk-prsel"></select><input id="sk-prname" type="text" maxlength="30" placeholder="Nom du profil (ex. : Copilote guerrier)"><div class="btns"><button type="button" id="sk-prsave">Enregistrer le profil actuel</button><button type="button" id="sk-prdel">Supprimer</button></div><div id="sk-prnote" style="font-size:12px;opacity:.8;line-height:1.4"></div></div>
       <div class="row" id="sk-sv"><label>Souvenirs de Seeker (validés par toi)</label><div id="sk-svlist"></div><div class="btns"><button type="button" id="sk-svask">Demander un souvenir</button></div></div>
@@ -3135,7 +3138,7 @@ var SIZES={"onnx/duration_predictor.onnx":3.7,"onnx/text_encoder.onnx":36.4,"onn
 var VOICES={};["M3","M1","M2","M4","M5"].forEach(function(k){VOICES[k]={n:"Seeker "+k+(k==="M3"?" (par défaut)":"")+" · homme"};});["F1","F2","F3","F4","F5"].forEach(function(k){VOICES[k]={n:"Voix "+k+" · femme"};});
 var FXS=[["raw","Aucun (voix naturelle)"],["grave","Grave"],["robot","Robot"],["radio","Radio cockpit"],["echo","Ondulant (intonation)"],["ia","IA froide"]];
 function stage(t){try{if(window.__skStage)window.__skStage(t);}catch(_){}}
-var gpuActive=false,steps=3,stats={gen:0,dur:0},pitchF=1,rateF=1;
+var gpuActive=false,steps=5,stats={gen:0,dur:0},pitchF=1,rateF=1;
 var ort=null,S=null,IDX=null,loading=null,styles={},chain=Promise.resolve(),ctx=null,gen=0,src=null,stops=[],playing=false,pend=0;
 function C(){if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();return ctx;}
 async function getFile(path,prog){
@@ -3424,8 +3427,8 @@ window.AMBIANCE={
     var E=$("sk-eng"),V=$("sk-pvoice"),X=$("sk-pfx"),B=$("sk-seeker-box"),ST=$("sk-pstat");
     Object.keys(SKV.voices).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=SKV.voices[k].n;V.appendChild(o);});
     SKV.fxs.forEach(function(f){var o=document.createElement("option");o.value=f[0];o.textContent=f[1];X.appendChild(o);});
-    window.__skAccel=g(K.paccel,"gpu");SKV.setSteps(parseInt(g(K.psteps,"3"),10)||3);
-    if($("sk-psteps")){$("sk-psteps").value=g(K.psteps,"3");$("sk-psteps").onchange=function(e){s(K.psteps,e.target.value);SKV.setSteps(parseInt(e.target.value,10));};}
+    window.__skAccel=g(K.paccel,"gpu");SKV.setSteps(5);
+    /* qualité maximale en permanence : plus de réglage vitesse/qualité */
     E.value=g(K.eng,"phone");V.value=SKV.voices[g(K.pvoice,"M3")]?g(K.pvoice,"M3"):"M3";X.value=g(K.pfx,"raw");
     var SP=$("sk-spitch"),SRt=$("sk-srate");
     function pr(){var p=parseFloat(SP.value),r=parseFloat(SRt.value);$("sk-spv").textContent=Math.round((p-0.75)/0.5*100)+" %";$("sk-srv").textContent=Math.round((r-0.7)/0.6*100)+" %";SKV.setPR(p,r);}
@@ -3506,7 +3509,7 @@ window.AMBIANCE={
     sel.onchange=function(){var n=sel.value;if(!n)return;var p=get()[n];if(!p)return;
       s(K.pvoice,p.v);s(K.pfx,p.fx);s(K.spitch,p.p);s(K.srate,p.r);s(K.psteps,p.st);s(K.perso2,p.perso||null);
       if($("sk-pvoice"))$("sk-pvoice").value=p.v;if($("sk-pfx"))$("sk-pfx").value=p.fx;if($("sk-spitch")){$("sk-spitch").value=p.p;$("sk-spitch").dispatchEvent(new Event("input"));}
-      if($("sk-srate")){$("sk-srate").value=p.r;$("sk-srate").dispatchEvent(new Event("input"));}if($("sk-psteps"))$("sk-psteps").value=p.st;if(window.__SKV)__SKV.setSteps(parseInt(p.st,10)||3);
+      if($("sk-srate")){$("sk-srate").value=p.r;$("sk-srate").dispatchEvent(new Event("input"));}if($("sk-psteps"))$("sk-psteps").value=p.st;if(window.__SKV)__SKV.setSteps(5);
       if($("sk-pprof"))$("sk-pprof").value=PROF[p.perso]?p.perso:"";
       $("sk-prnote").textContent="Profil « "+n+" » chargé.";speak("Profil "+n+" chargé.");};
     $("sk-prdel").onclick=function(){var n=sel.value;if(!n)return;var P=get();delete P[n];s(KP,JSON.stringify(P));fill("");$("sk-prnote").textContent="Profil « "+n+" » supprimé.";};
@@ -3804,7 +3807,7 @@ window.AMBIANCE={
   document.addEventListener("visibilitychange",function(){if(hfOn&&!document.hidden)lockOn();});
   WK.addEventListener("click",function(e){e.stopPropagation();});
   WK.addEventListener("change",function(){wake=WK.checked;var cb=$("sk-wakeamb");if(cb)cb.checked=wake;try{localStorage.setItem("mg-hf-wake",wake?"1":"0");}catch(_){}if(wake)startWake();else{stopWake();hfMode("","Touche l'écran pour parler");}});
-  try{wake=localStorage.getItem("mg-hf-wake")==="1";WK.checked=wake;}catch(_){}
+  try{var wv=localStorage.getItem("mg-hf-wake");wake=wv===null?!!SR:wv==="1";WK.checked=wake;}catch(_){}
   /* démarrage direct en mains libres, écoute continue « Seeker… » */
   (function(){var AU=$("sk-hfauto");if(!AU)return;var on=g("mg-hf-auto","0")==="1";AU.checked=on;
     AU.onchange=function(){s("mg-hf-auto",AU.checked?"1":"0");if(AU.checked){wake=true;WK.checked=true;s("mg-hf-wake","1");}};
@@ -3818,15 +3821,18 @@ window.AMBIANCE={
   /* écoute continue avec le mot d'appel */
   var WAKE=/(?:^|[\s,.;:!?])(?:seeker|seek|siker|sikeur|sikeure|sicker|sika|sikar|seekeur|seekeure|cicker|cicker|ciqueur|siqueur|sic?queur|sicker|si keur|si queur|seek heure|c'est que heure|(?:six|sis|sics?|si|ci|cis|sik|sick|sique|seak)[ -]?(?:c[oœ]e?urs?|queu?rs?|keu?rs?|kers?))\b[\s,.:;!?-]*/i;
   var WAKE_OLD=null;
+  function pk(w){w=w.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z]/g,"");if(w.length<4||w.length>9)return"";return w.replace(/ck|qu|ch(?=[aou])/g,"k").replace(/c(?=[aou])/g,"k").replace(/c/g,"s").replace(/[zx]/g,"s").replace(/ph/g,"f").replace(/[aeiouyh]+/g,"").replace(/(.)\1+/g,"$1");}
+  function findWake(t){var m=t.match(WAKE);if(m)return m;var re=/[^\s,.;:!?«»"]+/g,w,n=0;while((w=re.exec(t))&&n<4){n++;var kk=pk(w[0]);if(kk==="skr"||(kk==="sk"&&/^(?:se|si|ci|cy|sy)/i.test(w[0])&&w[0].length<=6)){var e=w.index+w[0].length,rest=t.slice(e).match(/^[\s,.:;!?-]*/)[0];var a=[t.slice(w.index,e)+rest];a.index=w.index;return a;}}return null;}
+  function wstat(t){var e=$("sk-wakestat");if(e)e.textContent=t||"";}
   function startWake(){if(!wake||wrec||paused||busy)return;wrec=mkRec(true);wrec.interimResults=false;
-    wrec.onstart=function(){hfMode("wake","J'écoute en continu. Dis « Seeker… »");};
+    wrec.onstart=function(){hfMode("wake","J'écoute en continu. Dis « Seeker… »");wstat("👂 J'écoute : dis « Seeker… »");};
     wrec.onresult=function(ev){for(var i=ev.resultIndex;i<ev.results.length;i++){if(!ev.results[i].isFinal)continue;var R=ev.results[i],hit=null,heard=R[0].transcript.trim();
-      for(var k=0;k<R.length&&!hit;k++){var tk=R[k].transcript.trim(),m=tk.match(WAKE);if(m)hit={t:tk,cmd:tk.slice(m.index+m[0].length).trim()};}
-      window.__skAlts=[];if(hit){for(var k2=0;k2<R.length&&k2<4;k2++){var t2=R[k2].transcript.trim(),m2=t2.match(WAKE);if(m2){var c2=t2.slice(m2.index+m2[0].length).trim();if(c2&&nrm(c2)!==nrm(hit.cmd))window.__skAlts.push(c2);}}}
-      if(hit){var cmd=fixNames(hit.cmd);HH.textContent="« "+fixNames(hit.t)+" »";if(!hfOn)open();if(cmd.length>1){stopWake();hfMode("thinking","Analyse…");mgFx.beep();ask(cmd);}else{mgFx.beep();hfMode("wake","Oui ?");armCmd();}}
-      else if(!cmdWait){HH.textContent="… "+fixNames(heard)+" (pas de « Seeker »)";}
+      for(var k=0;k<R.length&&!hit;k++){var tk=R[k].transcript.trim(),m=findWake(tk);if(m)hit={t:tk,cmd:tk.slice(m.index+m[0].length).trim()};}
+      window.__skAlts=[];if(hit){for(var k2=0;k2<R.length&&k2<4;k2++){var t2=R[k2].transcript.trim(),m2=findWake(t2);if(m2){var c2=t2.slice(m2.index+m2[0].length).trim();if(c2&&nrm(c2)!==nrm(hit.cmd))window.__skAlts.push(c2);}}}
+      if(hit){wstat("");var cmd=fixNames(hit.cmd);HH.textContent="« "+fixNames(hit.t)+" »";if(!hfOn)open();if(cmd.length>1){stopWake();hfMode("thinking","Analyse…");mgFx.beep();ask(cmd);}else{mgFx.beep();hfMode("wake","Oui ?");armCmd();}}
+      else if(!cmdWait){HH.textContent="… "+fixNames(heard)+" (pas de « Seeker »)";wstat("Entendu : « "+cut(fixNames(heard),50)+" » — pas de « Seeker »");}
       else if(cmdWait){HH.textContent="« "+fixNames(heard)+" »";cmdWait=false;stopWake();hfMode("thinking","Analyse…");ask(fixNames(heard));}}};
-    wrec.onerror=function(ev){if(ev.error==="not-allowed"){wake=false;WK.checked=false;hfMode("","Micro refusé : autorise-le dans Chrome");}};
+    wrec.onerror=function(ev){if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){wake=false;WK.checked=false;hfMode("","Micro refusé : autorise-le dans Chrome");wstat("Micro refusé : autorise-le dans Chrome (cadenas de l'adresse → Micro)");}else if(ev.error!=="no-speech"&&ev.error!=="aborted"){wstat("Écoute interrompue ("+ev.error+") : nouvel essai…");}};
     wrec.onend=function(){wrec=null;if(wake&&!paused&&!busy)setTimeout(startWake,80);};
     try{wrec.start();}catch(_){wrec=null;}}
   /* « Seeker » seul : la phrase suivante est la commande */
@@ -3837,8 +3843,10 @@ window.AMBIANCE={
     setTimeout(go,3000);document.addEventListener("pointerdown",function(){if(!tried){tried=true;setTimeout(go,100);}},{once:true});
     document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(go,300);});})();
   function stopWake(){if(wrec){var r=wrec;wrec=null;r.onend=null;try{r.abort();}catch(_){}}}
-  window.__hfPause=function(){paused=true;stopWake();if(hfOn)hfMode("speaking","Seeker parle…");};
+  window.__hfPause=function(){paused=true;stopWake();wstat("Seeker parle… (micro coupé)");if(hfOn)hfMode("speaking","Seeker parle…");};
   window.__hfResume=function(){if(window.__skSpeaking)return;paused=false;setTimeout(function(){if(busy||window.__skSpeaking)return;hfMode(wake?"wake":"",wake?"J'écoute en continu. Dis « Seeker… »":"Touche l'écran pour parler");if(wake)startWake();},750);};
+  var idleN=0;setInterval(function(){if(!window.__skSpeaking){idleN=0;return;}var pl=(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending))||(window.__SKV&&__SKV.isPlaying());if(pl||busy){idleN=0;return;}
+    if(++idleN>=(g(K.eng,"phone")==="seeker"?12:3)){idleN=0;window.__skSpeaking=false;setMode(null);if(window.__hfResume)__hfResume();}},1500);
   window.__hfSay=function(t){if(hfOn)HR.textContent=t;};
   window.addEventListener("hashchange",function(){if(location.hash==="#seeker"&&!LOG.children.length){say(g(K.key,"")?"En ligne. Je t'écoute, Exo.":"Bonjour, Exo. Il me manque ma clé de connexion. Elle se règle tout en bas.",true);}});
 })();
