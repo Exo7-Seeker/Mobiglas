@@ -3456,7 +3456,7 @@ window.AMBIANCE={
     speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t.replace(/[*_#`]/g,""));u.lang="fr-FR";if(voice)u.voice=voice;
     u.pitch=parseFloat(g(K.pitch,"0.9"));u.rate=parseFloat(g(K.rate,"1"));
     u.onstart=function(){setMode("speaking","Transmission");if(window.__hfPause)__hfPause();};u.onend=u.onerror=function(){window.__skSpeaking=false;setMode(null);if(window.__hfResume)__hfResume();};speechSynthesis.speak(u);}
-  function stopSpeech(){try{if(window.__SKV)__SKV.stop();}catch(_){}if(window.speechSynthesis)speechSynthesis.cancel();}
+  function stopSpeech(){try{if(window.__SKV)__SKV.stop();}catch(_){}if(window.speechSynthesis)speechSynthesis.cancel();window.__skSpeaking=false;try{paused=false;}catch(_){}}
   function speak(t){if(!mgSettings.voice||!t){setMode(null);return;}
     window.__skSpeaking=true;if(window.__hfPause)__hfPause();
     if(g(K.eng,"phone")==="seeker"&&window.__SKV){
@@ -3778,6 +3778,7 @@ window.AMBIANCE={
     r.onerror=function(e){o.error&&o.error(e);};
     r.onend=function(){clearTimeout(tm);if(done)return;done=true;o.end&&o.end(fixNames(fin.trim()));};
     r.stopNow=function(){clearTimeout(tm);try{r.stop();}catch(_){}};
+    r.cancel=function(){done=true;clearTimeout(tm);r.onend=null;try{r.abort();}catch(_){}};window.__oneRec=r;
     try{r.start();}catch(_){o.end&&o.end("");}return r;}
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition,rec=null,listening=false;
   if(!SR){HINT.textContent="Micro indisponible ici · écris à Seeker";}
@@ -3804,7 +3805,7 @@ window.AMBIANCE={
   function hfMode(m,t){HF.dataset.m=m||"";HS.textContent=t;}
   async function lockOn(){try{if(navigator.wakeLock)wlock=await navigator.wakeLock.request("screen");}catch(_){}}
   function open(){if(!SR){say("Le micro n'est pas disponible dans ce navigateur.",true);return;}hfOn=true;HF.hidden=false;HR.textContent="";HH.textContent="";lockOn();hfMode("",wake?idleTxt():"Touche l'écran pour parler");if(wake)startWake();mgFx.open();}
-  function close(){hfOn=false;HF.hidden=true;stopWake();setTimeout(function(){if(wake)startWake();},200);try{wlock&&wlock.release();}catch(_){}wlock=null;}
+  function close(){hfOn=false;HF.hidden=true;try{window.__wlog&&window.__wlog("CLOSE overlay (wrec="+!!wrec+" paused="+paused+" busy="+busy+" speaking="+!!window.__skSpeaking+")");}catch(_){}cmdWait=false;try{if(window.__oneRec)window.__oneRec.cancel();}catch(_){}stopWake();setTimeout(function(){if(wake&&!wrec)startWake();},700);try{wlock&&wlock.release();}catch(_){}wlock=null;}
   HFB.addEventListener("click",open);HF.querySelector(".hf-x").addEventListener("click",function(e){e.stopPropagation();close();});
   document.addEventListener("visibilitychange",function(){if(hfOn&&!document.hidden)lockOn();});
   WK.addEventListener("click",function(e){e.stopPropagation();});
@@ -3825,11 +3826,11 @@ window.AMBIANCE={
   var WAKE_OLD=null;
   function pk(w){w=w.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z]/g,"");if(w.length<4||w.length>10)return"";return w.replace(/ck|qu|ch(?=[aou])/g,"k").replace(/c(?=[aou])/g,"k").replace(/c/g,"s").replace(/[zx]/g,"s").replace(/ph/g,"f").replace(/[aeiouyh]+/g,"").replace(/(.)\1+/g,"$1");}
   function findWake(t){var m=t.match(WAKE);if(m)return m;var re=/[^\s,.;:!?«»"]+/g,w,n=0;while((w=re.exec(t))&&n<4){n++;var kk=pk(w[0]);if(kk==="skr"||kk==="sgr"||kk==="stkr"||kk==="stkrs"||kk==="sgrs"||(kk==="sk"&&/^(?:se|si|ci|cy|sy)/i.test(w[0])&&w[0].length<=6)){var e=w.index+w[0].length,rest=t.slice(e).match(/^[\s,.:;!?-]*/)[0];var a=[t.slice(w.index,e)+rest];a.index=w.index;return a;}}return null;}
-  var gesture=false;document.addEventListener("pointerdown",function(){gesture=true;},{capture:true});
-  var WL=[],WT0=Date.now();function wlog(x){WL.push(((Date.now()-WT0)/1000).toFixed(1)+"s "+x);if(WL.length>120)WL.shift();}window.__wlog=wlog;
+  var permErr=0,gesture=false;document.addEventListener("pointerdown",function(){gesture=true;},{capture:true});
+  var WL=[],WT0=Date.now();function wlog(x){WL.push(((Date.now()-WT0)/1000).toFixed(1)+"s "+x);if(WL.length>120)WL.shift();}window.__wlog=wlog;window.__WL=WL;
   function wstat(t){var e=$("sk-wakestat");if(e)e.textContent=t||"";}
   function startWake(){if(!wake||wrec||paused||busy)return;var rec=wrec=mkRec(true);rec.interimResults=true;var done={},iT=null,lastR=null,lastIdx=-1,lastErr="";
-    rec.onstart=function(){wlog("START (hfOn="+hfOn+")");hfMode("wake",idleTxt());wstat("👂 J'écoute : dis « Seeker… »");};
+    rec.onstart=function(){permErr=0;wlog("START (hfOn="+hfOn+")");hfMode("wake",idleTxt());wstat("👂 J'écoute : dis « Seeker… »");};
     /* traite une phrase (finale ou, faute de mieux, intermédiaire) */
     function handle(R){var hit=null,heard=R[0].transcript.trim();if(!heard)return;
       for(var k=0;k<R.length&&!hit;k++){var tk=R[k].transcript.trim(),m=findWake(tk);if(m)hit={t:tk,cmd:tk.slice(m.index+m[0].length).trim()};}
@@ -3848,13 +3849,13 @@ window.AMBIANCE={
           if(sup)continue;handle(R);if(wrec!==rec)return;}}
         else{lastR=R;lastIdx=i;if(!done[i]){var tt=R[0].transcript.trim();if(tt&&!cmdWait)wstat("Entendu : « "+cut(fixNames(tt),50)+" »");
           clearTimeout(iT);(function(RR,ii){iT=setTimeout(function(){if(wrec!==rec||done[ii])return;done[ii]=1;handle(RR);},1100);})(R,i);}}}};
-    rec.onerror=function(ev){wlog("ERROR "+ev.error);lastErr=ev.error;if((ev.error==="not-allowed"||ev.error==="service-not-allowed")&&!gesture){wstat("Micro : en attente d'un premier toucher de l'écran…");}else if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){wake=false;WK.checked=false;hfMode("","Micro refusé : autorise-le dans Chrome");wstat("Micro refusé : autorise-le dans Chrome (cadenas de l'adresse → Micro)");}else if(ev.error!=="no-speech"&&ev.error!=="aborted"){wstat("Écoute interrompue ("+ev.error+") : nouvel essai…");}};
-    rec.onend=function(){wlog("END");clearTimeout(iT);if(wrec===rec)wrec=null;if(lastR&&!done[lastIdx]){done[lastIdx]=1;try{handle(lastR);}catch(_){}}if(wake&&!paused&&!busy&&!wrec)setTimeout(startWake,(lastErr==="not-allowed"||lastErr==="service-not-allowed"||lastErr==="network")?1500:30);};
+    rec.onerror=function(ev){wlog("ERROR "+ev.error);lastErr=ev.error;var perm=(ev.error==="not-allowed"||ev.error==="service-not-allowed");if(perm){permErr++;if(!gesture)wstat("Micro : en attente d'un premier toucher de l'écran…");else if(permErr>=3)wstat("Micro refusé ou occupé : autorise-le dans Chrome (cadenas de l'adresse → Micro). Nouvel essai…");}else if(ev.error!=="no-speech"&&ev.error!=="aborted"){wstat("Écoute interrompue ("+ev.error+") : nouvel essai…");}};
+    rec.onend=function(){wlog("END");clearTimeout(iT);if(wrec===rec)wrec=null;if(lastR&&!done[lastIdx]){done[lastIdx]=1;try{handle(lastR);}catch(_){}}if(wake&&!paused&&!busy&&!wrec)setTimeout(startWake,(lastErr==="not-allowed"||lastErr==="service-not-allowed")?Math.min(1500*Math.max(permErr,1),6000):(lastErr==="network"||lastErr==="audio-capture"||lastErr==="aborted")?500:30);};
     try{rec.start();}catch(_){if(wrec===rec)wrec=null;setTimeout(startWake,500);}}
   (function(){var b=$("sk-wlogcopy");if(!b)return;b.onclick=function(){var t="Journal d'écoute Seeker (v64+)\n"+WL.join("\n");var done=function(ok){b.textContent=ok?"Journal copié ✓ — colle-le dans le chat":"Copie impossible";setTimeout(function(){b.textContent="Copier le journal d'écoute";},3500);};
       try{navigator.clipboard.writeText(t).then(function(){done(true);},function(){done(false);});}catch(_){done(false);}};})();
   /* filet de sécurité : si l'écoute est tombée sans prévenir, on la relance */
-  setInterval(function(){if(wake&&!wrec&&!paused&&!busy&&!window.__skSpeaking&&!document.hidden){try{startWake();}catch(_){}}},4000);
+  setInterval(function(){if(!wake||wrec)return;if(paused&&!window.__skSpeaking&&!busy&&!(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending))&&!(window.__SKV&&__SKV.isPlaying())){wlog("WATCHDOG : pause orpheline levée");paused=false;}if(paused||busy||window.__skSpeaking||document.hidden){wlog("WATCHDOG bloqué : paused="+paused+" busy="+busy+" speaking="+!!window.__skSpeaking+" hidden="+document.hidden);return;}wlog("WATCHDOG relance");try{startWake();}catch(_){}},4000);
   /* « Seeker » seul : la phrase suivante est la commande */
   var cmdWait=false,cmdT=null;function armCmd(){cmdWait=true;clearTimeout(cmdT);cmdT=setTimeout(function(){cmdWait=false;if(hfOn&&wake)hfMode("wake",idleTxt());},7000);}
   /* écoute « Seeker » partout dans l'appli (sans écran mains libres) quand l'option est active */
