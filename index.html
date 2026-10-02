@@ -1107,6 +1107,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
         <label class="chk"><input type="checkbox" id="sk-sound"> Sons d'interface</label>
         <label class="chk"><input type="checkbox" id="sk-vibe"> Vibrations</label>
       </div>
+      <div class="row" id="sk-eng-row"><label for="sk-eng">Moteur de voix</label><select id="sk-eng"><option value="phone">Voix du téléphone</option><option value="seeker">Voix Seeker (IA · ~400 Mo la 1re fois)</option></select><div id="sk-seeker-box" style="display:none"><label for="sk-pvoice">Voix de Seeker</label><select id="sk-pvoice"></select><label for="sk-pfx">Filtre de voix</label><select id="sk-pfx"></select><div class="btns"><button type="button" id="sk-ptest2">Tester cette voix</button></div><div id="sk-pstat" style="font-size:12px;opacity:.8;margin-top:6px;line-height:1.4"></div></div></div>
       <div class="row"><label for="sk-prof">Profil de voix</label><select id="sk-prof"><option value="">Personnalisé</option><option value="0.55|1">Seeker (par défaut)</option><option value="0.35|0.9">Grave et posé</option><option value="0.3|0.8">Très grave, lent (IA froide)</option><option value="1|1">Neutre</option><option value="1.3|1.1">Aiguë et vive</option></select><label for="sk-vpick">Voix de Seeker</label><select id="sk-vpick"><option value="">Automatique</option></select><label for="sk-pitch">Voix : grave ↔ aiguë <b id="sk-pv" class="pv"></b></label><input id="sk-pitch" type="range" min="0.3" max="1.4" step="0.05"><label for="sk-rate">Voix : lente ↔ rapide <b id="sk-rv" class="pv"></b></label><input id="sk-rate" type="range" min="0.7" max="1.3" step="0.05"></div>
       <div class="row" id="sk-perso"><label for="sk-pprof">Personnalité de Seeker</label><select id="sk-pprof"></select><div id="sk-traits"></div><div class="btns"><button type="button" id="sk-ptest">Tester : « Présente-toi »</button><button type="button" id="sk-preset">Réinitialiser</button></div></div>
       <div class="row btns"><button type="button" id="sk-test">Tester la voix</button><button type="button" id="sk-clear">Effacer la conversation</button><button type="button" id="sk-export">Exporter mes changements</button></div>
@@ -2813,12 +2814,160 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   window.addEventListener("hashchange",function(){if(location.hash==="#hangar")setTimeout(function(){inject(false);},80);});
 })();
 </script>
+<script>// ---- Filtres Seeker v2 (partagé page + test) ----
+const FXN={raw:"Brut",grave:"Grave",robot:"Robot",radio:"Radio cockpit",echo:"Ondulant (intonation)",ia:"IA froide"};
+function fxNoise(c,sec,fn){const n=Math.ceil(c.sampleRate*sec),b=c.createBuffer(1,n,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(fn?fn(i/n):1);return b;}
+function fxIR(c,sec,decay){const n=Math.ceil(c.sampleRate*sec),b=c.createBuffer(2,n,c.sampleRate);for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);let lp=0;for(let i=0;i<n;i++){const w=Math.random()*2-1;lp+=(w-lp)*.35;d[i]=lp*Math.pow(1-i/n,decay);}}return b;}
+// décaleur de hauteur (la durée ne change pas). f<1 = plus grave
+function fxPitch(c,input,f,lfo){
+  const act=.1,fade=.04,t2=act-fade,sr=c.sampleRate,l1=Math.round(act*sr),l2=Math.round((act-2*fade)*sr),L=l1+l2,fl=Math.round(fade*sr);
+  const fb=c.createBuffer(1,L,sr),fd=fb.getChannelData(0),db=c.createBuffer(1,L,sr),dd=db.getChannelData(0);
+  for(let i=0;i<l1;i++){fd[i]=i<fl?Math.sqrt(i/fl):(i>=l1-fl?Math.sqrt(1-(i-(l1-fl))/fl):1);dd[i]=i/l1;}
+  const span=(1-f)*act,out=c.createGain(),now=c.currentTime+.02,srcs=[];
+  [0,t2].forEach(off=>{
+    const dl=c.createDelay(.5);dl.delayTime.value=0;
+    const mg=c.createGain();mg.gain.value=span;if(lfo){const lo=c.createOscillator();lo.frequency.value=lfo.rate;const lg=c.createGain();lg.gain.value=lfo.depth*act;lo.connect(lg);lg.connect(mg.gain);lo.start(now);srcs.push(lo);}const ds=c.createBufferSource();ds.buffer=db;ds.loop=true;ds.connect(mg);mg.connect(dl.delayTime);
+    const fg=c.createGain();fg.gain.value=0;const fs=c.createBufferSource();fs.buffer=fb;fs.loop=true;fs.connect(fg.gain);
+    input.connect(dl);dl.connect(fg);fg.connect(out);
+    ds.start(now+off);fs.start(now+off);srcs.push(ds,fs);
+  });
+  return {out,stop:()=>srcs.forEach(s=>{try{s.stop()}catch(_){}})};
+}
+// construit la chaîne et retourne {stops:[...]}; dur = durée de la voix en s
+function fxBuild(c,src,k,dest,dur){
+  const stops=[];
+  const sh=(type,fq,g,q)=>{const f=c.createBiquadFilter();f.type=type;f.frequency.value=fq;if(g!=null)f.gain.value=g;if(q!=null)f.Q.value=q;return f;};
+  const comp=()=>{const d=c.createDynamicsCompressor();d.threshold.value=-24;d.ratio.value=6;d.attack.value=.003;d.release.value=.2;return d;};
+  const wet=(g)=>{const x=c.createGain();x.gain.value=g;return x;};
+  if(k==="raw"){src.connect(dest);return stops;}
+  if(k==="grave"){
+    const p=fxPitch(c,src,.72);stops.push(p.stop);
+    const ls=sh("lowshelf",220,9),hs=sh("highshelf",3500,-5),cp=comp();
+    p.out.connect(ls);ls.connect(hs);hs.connect(cp);const g=wet(.85);cp.connect(g);g.connect(dest);return stops;}
+  if(k==="robot"){
+    // voix nette + modulation en anneau légère + résonance métallique
+    const o=c.createOscillator();o.type="sine";o.frequency.value=140;const rg=c.createGain();rg.gain.value=0;o.connect(rg.gain);o.start();stops.push(()=>{try{o.stop()}catch(_){}});
+    const mix=c.createGain(),dry=wet(1.0),ring=wet(.32);src.connect(dry);dry.connect(mix);src.connect(rg);rg.connect(ring);ring.connect(mix);
+    const d=c.createDelay(.05);d.delayTime.value=.0034;const fbk=wet(.5);d.connect(fbk);fbk.connect(d);src.connect(d);d.connect(wet(.45)).connect(mix);
+    const pk=sh("peaking",1500,4,1),cp=comp(),g=wet(.9);mix.connect(pk);pk.connect(cp);cp.connect(g);g.connect(dest);return stops;}
+  if(k==="radio"){
+    // radio claire : voix nette, un peu "boîte à lunettes", sans souffle qui masque
+    const hp=sh("highpass",260,null,.7),lp=sh("lowpass",4200,null,.7),pk=sh("peaking",2200,6,.9),lo=sh("lowshelf",300,-3);
+    const ws=c.createWaveShaper();const cv=new Float32Array(512);for(let i=0;i<512;i++){const x=i/256-1;cv[i]=Math.tanh(x*1.6)/Math.tanh(1.6);}ws.curve=cv;
+    const cp=comp(),g=wet(.5);src.connect(hp);hp.connect(lo);lo.connect(pk);pk.connect(ws);ws.connect(lp);lp.connect(cp);cp.connect(g);g.connect(dest);
+    const t0=c.currentTime+.02;
+    [0,dur+.1].forEach(t=>{const b=c.createBufferSource();b.buffer=fxNoise(c,.05,x=>Math.pow(1-x,2));const bb=sh("bandpass",2000,null,.5),bg=wet(.12);b.connect(bb);bb.connect(bg);bg.connect(dest);b.start(t0+t);stops.push(()=>{try{b.stop()}catch(_){}});});
+    return stops;}
+  if(k==="echo"){
+    // intonation : la hauteur monte et descend en continu (voix ondulante)
+    const p=fxPitch(c,src,.9,{rate:1.1,depth:.1});stops.push(p.stop);
+    const hs=sh("highshelf",3500,2),g=wet(.95);p.out.connect(hs);hs.connect(g);g.connect(dest);return stops;}
+  if(k==="ia"){
+    const p=fxPitch(c,src,.89);stops.push(p.stop);
+    const mix=c.createGain();p.out.connect(mix);
+    const d=c.createDelay(.1);d.delayTime.value=.012;const l=c.createOscillator();l.frequency.value=.4;const lg=wet(.003);l.connect(lg);lg.connect(d.delayTime);l.start();stops.push(()=>{try{l.stop()}catch(_){}});p.out.connect(d);d.connect(wet(.35)).connect(mix);
+    const hs=sh("highshelf",3000,5),lp=sh("lowpass",7500),og=wet(.8);mix.connect(hs);hs.connect(lp);lp.connect(og);og.connect(dest);return stops;}
+  src.connect(dest);return stops;
+}
+
+/* ===== Voix Seeker : Supertonic 3 dans le téléphone + filtres ===== */
+(function(){
+var HFB="https://huggingface.co/Supertone/supertonic-3/resolve/main/";
+var ORT="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/";
+var FILES=["onnx/duration_predictor.onnx","onnx/text_encoder.onnx","onnx/vector_estimator.onnx","onnx/vocoder.onnx","onnx/unicode_indexer.json"];
+var SIZES={"onnx/duration_predictor.onnx":3.7,"onnx/text_encoder.onnx":36.4,"onnx/vector_estimator.onnx":257,"onnx/vocoder.onnx":101,"onnx/unicode_indexer.json":.3};
+var VOICES={};["M3","M1","M2","M4","M5"].forEach(function(k){VOICES[k]={n:"Seeker "+k+(k==="M3"?" (par défaut)":"")+" · homme"};});["F1","F2","F3","F4","F5"].forEach(function(k){VOICES[k]={n:"Voix "+k+" · femme"};});
+var FXS=[["raw","Aucun (voix naturelle)"],["grave","Grave"],["robot","Robot"],["radio","Radio cockpit"],["echo","Ondulant (intonation)"],["ia","IA froide"]];
+var ort=null,S=null,IDX=null,loading=null,styles={},chain=Promise.resolve(),ctx=null,gen=0,src=null,stops=[],playing=false,pend=0;
+function C(){if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();return ctx;}
+async function getFile(path,prog){
+  var url=HFB+path,cache=null;try{cache=await caches.open("supertonic3");}catch(_){}
+  if(cache){var hit=await cache.match(url);if(hit){var b=await hit.arrayBuffer();prog&&prog(b.byteLength);return b;}}
+  var r=await fetch(url);if(!r.ok)throw new Error("HTTP "+r.status);
+  var rd=r.body.getReader(),parts=[],n=0;
+  for(;;){var x=await rd.read();if(x.done)break;parts.push(x.value);n+=x.value.length;prog&&prog(n);}
+  var out=new Uint8Array(n),o=0;parts.forEach(function(p){out.set(p,o);o+=p.length;});
+  if(cache){try{await cache.put(url,new Response(out.buffer.slice(0)));}catch(_){}}
+  return out.buffer;
+}
+function withTimeout(p,ms,msg){return Promise.race([p,new Promise(function(_,r){setTimeout(function(){r(new Error(msg));},ms);})]);}
+/* télécharge (une seule fois) et charge le moteur */
+function ensure(key,onProg){
+  if(S)return style(key).then(function(){});
+  if(!loading){
+    loading=(async function(){
+      ort=await import(ORT+"ort.wasm.min.mjs");ort.env.wasm.wasmPaths=ORT;ort.env.wasm.numThreads=1;
+      var total=0;Object.keys(SIZES).forEach(function(k){total+=SIZES[k];});var done={},bufs={};
+      for(var i=0;i<FILES.length;i++){var f=FILES[i];
+        bufs[f]=await getFile(f,function(n){done[f]=n;var sum=0;Object.keys(done).forEach(function(k){sum+=done[k];});sum/=1048576;if(window.__skProg)window.__skProg(Math.min(100,Math.round(100*sum/total)));});}
+      IDX=JSON.parse(new TextDecoder().decode(bufs["onnx/unicode_indexer.json"]));
+      var s={};
+      var M=[["dp","onnx/duration_predictor.onnx"],["te","onnx/text_encoder.onnx"],["ve","onnx/vector_estimator.onnx"],["vo","onnx/vocoder.onnx"]];
+      for(var j=0;j<M.length;j++){s[M[j][0]]=await ort.InferenceSession.create(new Uint8Array(bufs[M[j][1]]),{executionProviders:["wasm"],graphOptimizationLevel:"all"});bufs[M[j][1]]=null;}
+      S=s;
+    })();
+    loading.catch(function(){loading=null;S=null;});
+  }
+  window.__skProg=onProg||null;
+  return loading.then(function(){return style(key);}).then(function(){});
+}
+async function style(name){
+  if(styles[name])return styles[name];
+  var j=await (await fetch(HFB+"voice_styles/"+name+".json")).json();
+  var mk=function(o){return new ort.Tensor("float32",Float32Array.from(o.data.flat(Infinity)),o.dims);};
+  return styles[name]={ttl:mk(j.style_ttl),dp:mk(j.style_dp)};
+}
+function prepText(text){
+  var t=text.normalize("NFKD").replace(/[“”]/g,'"').replace(/[‘’´`]/g,"'").replace(/[–—‑]/g,"-").replace(/\s+/g," ").trim();
+  if(!/[.!?…]$/.test(t))t+=".";return "<fr>"+t+"</fr>";}
+function tokens(s){var ids=[];for(var ch of s){var v=IDX[ch.codePointAt(0)];if(v===undefined||v<0)continue;ids.push(v);}return ids;}
+function randn(){var u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+async function synthRaw(text,voice){
+  var st=await style(voice),ids=tokens(prepText(text));if(!ids.length)throw new Error("texte vide");
+  var T=ids.length,text_ids=new ort.Tensor("int64",BigInt64Array.from(ids.map(BigInt)),[1,T]),text_mask=new ort.Tensor("float32",new Float32Array(T).fill(1),[1,1,T]);
+  var dr=await S.dp.run({text_ids:text_ids,style_dp:st.dp,text_mask:text_mask});var dur=dr[S.dp.outputNames[0]].data[0]/1.05;
+  var te=await S.te.run({text_ids:text_ids,style_ttl:st.ttl,text_mask:text_mask});var text_emb=te[S.te.outputNames[0]];
+  var SR=44100,CH=512*6,LD=24*6,wavLen=Math.ceil(dur*SR),LL=Math.max(1,Math.ceil(wavLen/CH));
+  var lat=new Float32Array(LD*LL);for(var i=0;i<lat.length;i++)lat[i]=randn();
+  var latent=new ort.Tensor("float32",lat,[1,LD,LL]),latent_mask=new ort.Tensor("float32",new Float32Array(LL).fill(1),[1,1,LL]),STEPS=5;
+  for(var k=0;k<STEPS;k++){var r=await S.ve.run({noisy_latent:latent,text_emb:text_emb,style_ttl:st.ttl,latent_mask:latent_mask,text_mask:text_mask,current_step:new ort.Tensor("float32",Float32Array.of(k),[1]),total_step:new ort.Tensor("float32",Float32Array.of(STEPS),[1])});latent=r[S.ve.outputNames[0]];}
+  var vr=await S.vo.run({latent:latent}),wav=vr[S.vo.outputNames[0]].data,n=Math.min(wav.length,wavLen),out=new Float32Array(n);out.set(wav.subarray(0,n));
+  var b=C().createBuffer(1,n,SR);b.getChannelData(0).set(out);return b;
+}
+function synth(text,voice){var run=async function(){await ensure(voice);return await withTimeout(synthRaw(text,voice),120000,"Synthèse trop longue");};var p=chain.then(run,run);chain=p.catch(function(){});return p;}
+function split(t){
+  var parts=t.replace(/\s+/g," ").trim().split(/(?<=[.!?…:;])\s+/),out=[],cur="";
+  parts.forEach(function(s){if((cur+" "+s).length>170&&cur){out.push(cur);cur=s;}else cur=cur?cur+" "+s:s;});
+  if(cur)out.push(cur);return out;
+}
+function stop(){gen++;try{src&&src.stop();}catch(_){}src=null;stops.forEach(function(f){try{f();}catch(_){}});stops=[];playing=false;}
+function playBuf(buf,fx){return new Promise(function(res){var c=C(),s=c.createBufferSource();s.buffer=buf;
+  stops=fxBuild(c,s,fx||"raw",c.destination,buf.duration);s.onended=function(){stops.forEach(function(f){try{f();}catch(_){}});stops=[];setTimeout(res,fx==="radio"?120:0);};
+  src=s;s.start(c.currentTime+.02);});}
+async function speak(text,key,fx,cb){
+  stop();var my=gen;pend++;
+  try{var chunks=split(text);if(!chunks.length)return;
+    await C().resume();
+    var next=synth(chunks[0],key),started=false;
+    for(var i=0;i<chunks.length;i++){
+      var buf=await next;if(my!==gen)return;
+      if(i+1<chunks.length)next=synth(chunks[i+1],key);
+      if(!started){started=true;playing=true;cb&&cb.start&&cb.start();}
+      await playBuf(buf,fx);if(my!==gen)return;
+    }
+    playing=false;cb&&cb.end&&cb.end();
+  }finally{pend--;}
+}
+function cachedReady(){return (window.caches?caches.open("supertonic3").then(function(c){return c.keys();}).then(function(k){return k.length>=FILES.length;}):Promise.resolve(false)).catch(function(){return false;});}
+window.__SKV={voices:VOICES,fxs:FXS,ensure:ensure,speak:speak,stop:stop,cachedReady:cachedReady,isPlaying:function(){return playing||pend>0;},unlock:function(){try{C().resume();}catch(_){}}};
+})();
+</script>
 <script>/* Seeker · IA de bord intégrée */
 (function(){
   var $=function(id){return document.getElementById(id);};
   var root=$("sk");if(!root)return;
   var LOG=$("sk-log"),STATE=$("sk-state"),MIC=$("sk-mic"),HINT=$("sk-hint");
-  var K={key:"mg-api-key",model:"mg-model",hist:"mg-seeker-hist",pitch:"mg-pitch",rate:"mg-rate",vname:"mg-voice-name",perso:"mg-perso"};
+  var K={key:"mg-api-key",model:"mg-model",hist:"mg-seeker-hist",pitch:"mg-pitch",rate:"mg-rate",vname:"mg-voice-name",perso:"mg-perso",eng:"mg-eng",pvoice:"mg-pvoice",pfx:"mg-pfx"};
   function g(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}}
   function s(k,v){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
   var norm=function(t){return String(t||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();};
@@ -2861,11 +3010,39 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
     note.textContent=order.length>1?"":"Ton téléphone ne propose qu'une voix française. Pour en ajouter : Paramètres Android → Synthèse vocale → Google → Installer les données vocales.";}
   if(window.speechSynthesis){pickVoice();fillVoices();speechSynthesis.onvoiceschanged=function(){pickVoice();fillVoices();};}
   if($("sk-vpick"))$("sk-vpick").onchange=function(e){s(K.vname,e.target.value||null);pickVoice();speak("Constantes stables. Je suis là, Exo.");};
+  /* ---------- voix Seeker (moteur dans le téléphone) ---------- */
+  (function(){var SKV=window.__SKV;if(!SKV||!$("sk-eng"))return;
+    var E=$("sk-eng"),V=$("sk-pvoice"),X=$("sk-pfx"),B=$("sk-seeker-box"),ST=$("sk-pstat");
+    Object.keys(SKV.voices).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=SKV.voices[k].n;V.appendChild(o);});
+    SKV.fxs.forEach(function(f){var o=document.createElement("option");o.value=f[0];o.textContent=f[1];X.appendChild(o);});
+    E.value=g(K.eng,"phone");V.value=(__SKV.voices[g(K.pvoice,"M3")]?g(K.pvoice,"M3"):"M3");X.value=g(K.pfx,"raw");
+    function show(){B.style.display=E.value==="seeker"?"block":"none";}show();
+    var TEST="Constantes stables. Je suis là, Exo. Le point de saut est dégagé.";
+    function prepare(thenTest){ST.textContent="Préparation de la voix…";
+      return SKV.ensure(V.value,function(p){ST.textContent=p<100?"Téléchargement de la voix : "+p+" % (une seule fois)":"Chargement de la voix…";}).then(function(){ST.textContent="Voix prête ✓";if(thenTest)return SKV.speak(TEST,V.value,X.value,{});}).catch(function(e){
+        ST.textContent="Impossible de charger la voix Seeker ("+(e&&e.message||e)+"). Seeker garde la voix du téléphone.";E.value="phone";s(K.eng,"phone");show();});}
+    E.onchange=function(){s(K.eng,E.value);show();if(E.value==="seeker"){SKV.unlock();prepare(true);}};
+    V.onchange=function(){s(K.pvoice,V.value);SKV.unlock();prepare(true);};
+    X.onchange=function(){s(K.pfx,X.value);SKV.unlock();SKV.speak(TEST,V.value,X.value,{}).catch(function(e){ST.textContent="Erreur : "+(e&&e.message||e);});};
+    $("sk-ptest2").onclick=function(){SKV.unlock();stopSpeech();SKV.speak(TEST,V.value,X.value,{}).catch(function(e){ST.textContent="Erreur : "+(e&&e.message||e);});};
+    document.addEventListener("pointerdown",SKV.unlock,{once:true});
+    /* voix déjà téléchargée et aucun choix mémorisé : Seeker prend sa voix tout seul */
+    SKV.cachedReady().then(function(ok){if(!ok)return;if(!g(K.eng,null)){s(K.eng,"seeker");E.value="seeker";show();}if(E.value==="seeker"){ST.textContent="Voix prête.";setTimeout(function(){SKV.ensure(V.value).catch(function(){});},4000);}});
+  })();
   function setMode(m,label){root.classList.remove("listening","thinking","speaking");if(m)root.classList.add(m);STATE.textContent=label||"En veille";}
-  function speak(t){if(!mgSettings.voice||!window.speechSynthesis||!t){setMode(null);return;}
+  function phoneSpeak(t){if(!window.speechSynthesis)return;
     speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t.replace(/[*_#`]/g,""));u.lang="fr-FR";if(voice)u.voice=voice;
     u.pitch=parseFloat(g(K.pitch,"0.55"));u.rate=parseFloat(g(K.rate,"1"));
     u.onstart=function(){setMode("speaking","Transmission");if(window.__hfPause)__hfPause();};u.onend=u.onerror=function(){setMode(null);if(window.__hfResume)__hfResume();};speechSynthesis.speak(u);}
+  function stopSpeech(){try{if(window.__SKV)__SKV.stop();}catch(_){}if(window.speechSynthesis)speechSynthesis.cancel();}
+  function speak(t){if(!mgSettings.voice||!t){setMode(null);return;}
+    if(g(K.eng,"phone")==="seeker"&&window.__SKV){
+      if(window.speechSynthesis)speechSynthesis.cancel();
+      var clean=t.replace(/[*_#`]/g,"");
+      __SKV.speak(clean,(__SKV.voices[g(K.pvoice,"M3")]?g(K.pvoice,"M3"):"M3"),g(K.pfx,"raw"),{start:function(){setMode("speaking","Transmission");if(window.__hfPause)__hfPause();},end:function(){setMode(null);if(window.__hfResume)__hfResume();}})
+        .catch(function(e){setMode(null);var st=$("sk-pstat");if(st)st.textContent="Voix Seeker indisponible ("+(e&&e.message||e)+") : voix du téléphone utilisée.";phoneSpeak(t);});
+      return;}
+    phoneSpeak(t);}
 
   /* ---------- affichage ---------- */
   var hist=[];try{hist=JSON.parse(g(K.hist,"[]"))||[];}catch(e){hist=[];}
@@ -3100,7 +3277,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
       hist.push({role:"user",content:text},{role:"assistant",content:final});hist=hist.slice(-20);s(K.hist,JSON.stringify(hist));
       if(final==="…"){setMode(null);}else say(final);
     }catch(e){var el=bubble("sk-ai err",e.message||"Liaison perdue.");setMode(null);}
-    finally{busy=false;if(!root.classList.contains("speaking")){setMode(null);if(window.__hfResume&&!(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending)))__hfResume();}}
+    finally{busy=false;if(!root.classList.contains("speaking")){setMode(null);if(window.__hfResume&&!((window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending))||(window.__SKV&&__SKV.isPlaying())))__hfResume();}}
   }
   $("sk-form").addEventListener("submit",function(e){e.preventDefault();var i=$("sk-input");var t=i.value;i.value="";ask(t);});
 
@@ -3109,7 +3286,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   if(!SR){HINT.textContent="Micro indisponible ici · écris à Seeker";}
   MIC.addEventListener("click",function(){
     if(!SR){$("sk-input").focus();return;}
-    if(window.speechSynthesis)speechSynthesis.cancel();
+    stopSpeech();
     if(listening&&rec){rec.stop();return;}
     rec=new SR();rec.lang="fr-FR";rec.interimResults=true;rec.continuous=false;var finalT="";
     rec.onstart=function(){listening=true;setMode("listening","J'écoute…");HINT.textContent="Touche pour arrêter";mgFx.beep();};
@@ -3138,7 +3315,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   WK.addEventListener("change",function(){wake=WK.checked;try{localStorage.setItem("mg-hf-wake",wake?"1":"0");}catch(_){}if(wake)startWake();else{stopWake();hfMode("","Touche l'écran pour parler");}});
   try{wake=localStorage.getItem("mg-hf-wake")==="1";WK.checked=wake;}catch(_){}
   /* appui n'importe où = parler une fois */
-  HF.addEventListener("click",function(e){if(e.target.closest(".hf-wake,.hf-x"))return;if(busy)return;if(window.speechSynthesis)speechSynthesis.cancel();stopWake();
+  HF.addEventListener("click",function(e){if(e.target.closest(".hf-wake,.hf-x"))return;if(busy)return;stopSpeech();stopWake();
     var r=new SR();r.lang="fr-FR";r.interimResults=true;r.continuous=false;var fin="";
     r.onstart=function(){hfMode("listening","J'écoute…");mgFx.beep();};
     r.onresult=function(ev){var t="";for(var i=ev.resultIndex;i<ev.results.length;i++){t+=ev.results[i][0].transcript;if(ev.results[i].isFinal)fin+=ev.results[i][0].transcript;}HH.textContent="« "+t+" »";};
