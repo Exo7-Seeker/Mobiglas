@@ -532,7 +532,7 @@ h2,.d-head h2{letter-spacing:.05em}
 @media (prefers-reduced-motion:reduce){.map-stage svg.zin,.map-stage svg.zout,.tab-panel.mg-flick{animation:none}}
 
 /* ===== Démarrage ===== */
-#mg-boot{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 40%,#08324a 0%,#041622 45%,#020a10 80%);color:#bff6ff;display:flex;flex-direction:column;justify-content:space-between;padding:calc(48px + env(safe-area-inset-top,0px)) 26px 40px;font-family:"Chakra Petch",sans-serif;transition:opacity .5s ease,filter .5s ease}
+#mg-boot{position:fixed;inset:0;z-index:100;background:linear-gradient(#051620,rgba(5,22,32,0) 110px),radial-gradient(ellipse at 50% 40%,#08324a 0%,#041622 45%,#020a10 80%);color:#bff6ff;display:flex;flex-direction:column;justify-content:space-between;padding:calc(48px + env(safe-area-inset-top,0px)) 26px 40px;font-family:"Chakra Petch",sans-serif;transition:opacity .5s ease,filter .5s ease}
 #mg-boot.out{opacity:0;filter:blur(8px) brightness(1.6);pointer-events:none}
 #mg-boot .b-top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#4fb7c9}
 #mg-boot .b-mid{display:flex;flex-direction:column;align-items:center;gap:22px}
@@ -939,6 +939,9 @@ footer.end{display:none!important}
 .sp2-vp{--nu:#ff9d4a;--nu-l:#ffd2a8}.sp2-vp,.sp2-vp .sp2-main,.sp2-vp .sp2-box,.sp2-vp .sp2-mast,.sp2-vp .bk-date{border-color:rgba(255,157,74,.55)}.sp2-vp .sp2-mast{background:linear-gradient(180deg,rgba(255,157,74,.25),rgba(255,157,74,.05))}
 .sp2-ch{--nu:#ff5a5a;--nu-l:#ffb3b3}.sp2-ch,.sp2-ch .sp2-main,.sp2-ch .sp2-box,.sp2-ch .sp2-mast,.sp2-ch .bk-date{border-color:rgba(255,90,90,.55)}.sp2-ch .sp2-mast{background:linear-gradient(180deg,rgba(255,90,90,.22),rgba(255,90,90,.05))}
 .sp-list{padding-bottom:20px}.sp-list .sp-une{height:auto;min-height:0}.sp-open .bk{margin-inline:0}.sp-open .sp-host{flex:1}
+
+/* fondu sous la barre d etat : meme couleur que theme-color, sans coupure visible */
+html::after{content:"";position:fixed;top:0;left:0;right:0;height:56px;z-index:-1;pointer-events:none;background:linear-gradient(#051620,rgba(5,22,32,0))}
 </style>
 </head>
 <body>
