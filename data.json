@@ -106,8 +106,8 @@
      "titre": "Orison : Crusader lance la reconstruction après l'assaut des Nine Tails",
      "texte": "Trois semaines après l'attaque qui a frappé les plateformes d'Orison, Crusader Industries a présenté son plan de reconstruction. Les chantiers des quais d'August Dunlow rouvriront par tranches, les premières dès la fin du mois. La compagnie promet des renforts de sécurité autour des stations orbitales et indemnise les commerçants touchés. Plusieurs pilotes indépendants qui ont repoussé l'assaut ont été reçus par la direction. Sur les réseaux, beaucoup se demandent comment un gang a pu frapper aussi près d'une ville de cette taille.",
      "image": {
-      "scene": "orison",
-      "legende": "Les plateformes d'Orison, au-dessus des nuages de Crusader"
+      "wiki": "Crusader-orison-spaceport-exterior-01.jpg",
+      "legende": "August Dunlow Spaceport, Orison"
      }
     },
     {
@@ -116,8 +116,8 @@
      "titre": "Régénération : le débat sur les imprints divise le Sénat",
      "texte": "La commission de santé du Sénat a rouvert le dossier de la régénération. Certains sénateurs veulent imposer un délai minimum entre deux transferts d'imprint, d'autres dénoncent une atteinte à la liberté des pilotes indépendants. Les grands réseaux hospitaliers, de Maria Pure of Heart à Orison General, plaident pour le statu quo. Une partie de l'opinion rappelle qu'une régénération n'efface pas tout : la fatigue, les cicatrices invisibles, la mémoire des derniers instants.",
      "image": {
-      "scene": "senat",
-      "legende": "L'hémicycle du Sénat de l'UEE"
+      "wiki": "Hospital_Bed_Regeneration.png",
+      "legende": "Un lit de régénération : le cœur du débat"
      }
     },
     {
@@ -126,8 +126,8 @@
      "titre": "Les pourparlers avec l'Empire Xi'an au point mort",
      "texte": "Les délégations se sont séparées sans communiqué commun. Les négociations portaient sur les droits de passage commerciaux et l'ouverture de nouveaux couloirs vers l'espace xi'an. Selon des sources proches du dossier, les deux camps buttent sur la question des inspections de cargaisons. Les transporteurs de Terra, qui comptaient sur un accord avant la fin de l'année, s'inquiètent de voir leurs carnets de commandes se vider.",
      "image": {
-      "scene": "convoi",
-      "legende": "Un convoi de fret en attente de couloir"
+      "wiki": "Quantum_Drive_Travel.png",
+      "legende": "Convoi en saut quantique"
      }
     },
     {
@@ -136,8 +136,8 @@
      "titre": "InterSec recrute des pilotes après de nouveaux raids vanduul",
      "texte": "La société de sécurité InterSec cherche des pilotes de combat pour des missions d'escorte aux frontières. Contrats courts, primes au risque, assurance de coque comprise. Les recruteurs ne cachent pas que les vétérans d'équipages mercenaires sont les bienvenus. « On ne demande pas d'où vous venez, on demande si vous tenez sous le feu », résume l'un d'eux. Les candidatures se font directement dans les bureaux des grandes stations.",
      "image": {
-      "scene": "raid",
-      "legende": "Accrochage à la frontière de Nyx"
+      "wiki": "The_Glaciem_ring_in_the_space_of_Nyx.png",
+      "legende": "L'anneau Glaciem, système Nyx"
      }
     },
     {
@@ -146,8 +146,8 @@
      "titre": "Lorville : la ligne Perimeter Est reprend son service après six heures de panne",
      "texte": "Des milliers d'ouvriers sont restés bloqués sur les quais du Workers District mardi. La panne d'alimentation a paralysé la ligne Perimeter Est pendant six heures. Hurston Dynamics parle d'un « incident technique isolé » et assure que la production n'a pas été touchée. Les habitants, eux, racontent les rames arrêtées dans le noir et les retenues sur salaire pour les heures de travail manquées.",
      "image": {
-      "scene": "metro",
-      "legende": "La ligne Perimeter, à l'arrêt"
+      "wiki": "Lorville-workers-district-metro-center-3.4.1.jpg",
+      "legende": "La station du Workers District, Lorville"
      }
     }
    ]
