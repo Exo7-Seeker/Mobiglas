@@ -1159,6 +1159,13 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
   #contacts-mount .inv-item .s,#contacts-mount .inv-item .b{display:none}
   #contacts-mount .inv-detail{scroll-margin-top:100px}
 }
+
+/* Balayage entre onglets */
+@keyframes mgSwL{from{opacity:.4;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes mgSwR{from{opacity:.4;transform:translateX(-28px)}to{opacity:1;transform:none}}
+.tab-panel.mg-swl{animation:mgSwL .24s ease-out}
+.tab-panel.mg-swr{animation:mgSwR .24s ease-out}
+@media (prefers-reduced-motion:reduce){.tab-panel.mg-swl,.tab-panel.mg-swr{animation:none}}
 </style>
 </head>
 <body>
@@ -3025,6 +3032,32 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   var mo=new MutationObserver(function(){setTimeout(apply,30);});
   function watch(){var host=document.getElementById("cap");if(host){mo.observe(host,{childList:true});apply();}else setTimeout(watch,500);}
   watch();window.addEventListener("hashchange",function(){if(location.hash==="#cap")setTimeout(apply,120);});
+})();
+</script>
+<script>/* Balayage : gauche/droite change d'onglet ; sur la liste du Hangar ou des Contacts, change de vaisseau ou de contact */
+(function(){
+  var X0=0,Y0=0,T0=0,tgt=null,on=false,PG=null;
+  var BLOCK='input,textarea,select,[contenteditable],.bk,.rv-view,.sp-open,.map-stage,.map-list svg,.h3d,canvas,.cx-rail,.cx-fiche,.cx-az,.term-pop,.sk-log,#sk-log,details[open] .sk-set,button[role="slider"]';
+  function hScroll(el){while(el&&el!==document.body){if(el.scrollWidth>el.clientWidth+4){var o=getComputedStyle(el).overflowX;if(o==="auto"||o==="scroll")return true;}el=el.parentElement;}return false;}
+  function tabs(){return [].slice.call(document.querySelectorAll("a.tab[data-tab]"));}
+  function curIdx(a){for(var i=0;i<a.length;i++)if(a[i].getAttribute("aria-selected")==="true")return i;return -1;}
+  function goTab(dir){var a=tabs(),i=curIdx(a);if(i<0)return;var n=i+dir;if(n<0||n>=a.length)return;
+    var p=document.getElementById("tab-"+a[n].dataset.tab);location.hash="#"+a[n].dataset.tab;
+    setTimeout(function(){var q=document.getElementById("tab-"+a[n].dataset.tab);if(q){q.classList.remove("mg-swl","mg-swr");void q.offsetWidth;q.classList.add(dir>0?"mg-swl":"mg-swr");setTimeout(function(){q.classList.remove("mg-swl","mg-swr");},300);}},20);}
+  function goItem(side,dir){var items=[].slice.call(side.querySelectorAll(".inv-item")).filter(function(b){return b.offsetParent;});if(!items.length)return false;
+    var i=items.findIndex(function(b){return b.getAttribute("aria-current")==="true";});if(i<0)i=0;var n=i+dir;if(n<0||n>=items.length)return true;
+    items[n].click();try{items[n].scrollIntoView({block:"nearest",inline:"nearest"});}catch(e){}return true;}
+  document.addEventListener("touchstart",function(e){if(e.touches.length!==1){on=false;return;}var t=e.touches[0];X0=t.clientX;Y0=t.clientY;T0=Date.now();tgt=e.target;on=true;PG=null;var bk=tgt.closest&&tgt.closest("#tab-journal .bk");if(bk){var n=bk.querySelector(".bk-n"),t=bk.querySelector(".bk-t");if(n&&t)PG={n:parseInt(n.textContent,10),t:parseInt(t.textContent,10)};}},{passive:true});
+  document.addEventListener("touchend",function(e){if(!on)return;on=false;var t=e.changedTouches[0],dx=t.clientX-X0,dy=t.clientY-Y0;
+    if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*2||Date.now()-T0>700)return;
+    var el=tgt;if(!el||!el.closest)return;if(document.getElementById("mg-boot")&&document.getElementById("mg-boot").isConnected)return;
+    var dir=dx<0?1:-1;
+    var side=el.closest("#hangar-mount .inv-side,#contacts-mount .inv-side");
+    if(side&&!el.closest("input")){goItem(side,dir);return;}
+    if(PG&&((dir<0&&PG.n<=1)||(dir>0&&PG.n>=PG.t))){goTab(dir);return;}
+    if(el.closest(BLOCK)||hScroll(el))return;
+    goTab(dir);},{passive:true});
+  document.addEventListener("touchcancel",function(){on=false;},{passive:true});
 })();
 </script>
 <script>// ---- Filtres Seeker v2 (partagé page + test) ----
