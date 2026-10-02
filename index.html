@@ -866,6 +866,79 @@ footer.end{display:none!important}
 .h3d-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:0 0 12px;padding:8px 10px;border:1px solid var(--line);background:rgba(6,36,51,.5);font-family:var(--mono);font-size:10.5px;color:var(--dim)}
 .h3d-bar button{background:rgba(95,227,240,.07);border:1px solid var(--line);color:var(--hud);font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;padding:8px 10px;cursor:pointer;min-height:36px}
 .h3d-wrap{margin:8px 0 14px}
+/* ===== Livre (journal) et écrans de presse (Spectrum) ===== */
+.bk{--bk-h:70vh;--nu:#4aa3ff;--nu-d:#0b2035;--nu-p:#0f2a46;--nu-l:#9fd0ff;margin-inline:-16px;display:flex;flex-direction:column;gap:4px}
+.bk-view{height:var(--bk-h);overflow:hidden;position:relative;perspective:1400px}
+.bk-track{display:flex;height:100%;will-change:transform}
+.bk-cell{flex:0 0 auto;height:100%;display:flex;justify-content:center}
+.bk-cell .bk-page{transition:transform .5s cubic-bezier(.3,.7,.2,1),opacity .5s;transform-origin:left center}
+.bk-cell:not(.on) .bk-page{opacity:.4;transform:rotateY(-8deg) scale(.96)}
+.bk-stage{position:absolute;left:-9999px;top:0;visibility:hidden}
+.bk-page{width:var(--pw,100%);box-sizing:border-box;position:relative;display:flex;flex-direction:column;background:linear-gradient(180deg,#10304f 0%,#0b2138 100%);border:1px solid rgba(74,163,255,.55);border-radius:6px;box-shadow:inset 0 0 0 3px rgba(4,14,26,.6),0 0 24px rgba(30,120,220,.15);overflow:hidden;color:#d9e8f6}
+.bk-strip{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 12px;background:linear-gradient(90deg,rgba(74,163,255,.32),rgba(74,163,255,.08));border-bottom:1px solid rgba(74,163,255,.5);font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--nu-l)}
+.bk-strip b{color:#fff;font-weight:600;white-space:nowrap}
+.bk-in{flex:1;min-height:0;display:flex;flex-direction:column;padding:10px 14px 0}
+.bk-kick{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:4px}
+.bk-title{font-family:var(--display);font-weight:700;font-size:clamp(24px,7vw,34px);line-height:1;text-transform:uppercase;letter-spacing:.02em;color:#fff;margin:0 0 6px;text-shadow:0 0 18px rgba(74,163,255,.35)}
+.bk-deck{font-family:"Spectral",Georgia,serif;font-style:italic;font-size:15px;line-height:1.4;color:#bcd9f3;margin:0 0 8px;padding-bottom:8px;border-bottom:1px solid rgba(74,163,255,.3)}
+.bk-run{font-family:var(--display);font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--nu-l);margin-bottom:6px}
+.bk-figslot,.bk-fig{flex:0 0 auto;height:calc(var(--bk-h) * .30);margin:2px 0 8px;position:relative;border:1px solid rgba(74,163,255,.5);border-radius:4px;overflow:hidden;background:#071a2c}
+.bk-figslot.bk-hero,.bk-fig.bk-hero{height:calc(var(--bk-h) * .27)}
+.bk-fig img{display:block;width:100%;height:100%;object-fit:cover}
+.bk-fig figcaption{position:absolute;left:0;right:0;bottom:0;padding:16px 8px 5px;background:linear-gradient(180deg,transparent,rgba(4,14,26,.9));font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;color:#cfe5fb}
+.bk-fig figcaption span{opacity:.6}
+.bk-fig.bk-noimg{background:repeating-linear-gradient(135deg,rgba(74,163,255,.06) 0 6px,transparent 6px 12px)}
+.bk-text{flex:1;min-height:0;overflow:hidden;font-family:"Spectral",Georgia,serif;font-size:15.5px;line-height:1.55;color:#dce9f6}
+.bk-text p{margin:0 0 9px;text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+.bk-text p.cont{text-indent:0}
+.bk-drop>p:first-child::first-letter{float:left;font-family:var(--display);font-weight:700;font-size:48px;line-height:.85;padding:5px 8px 0 0;color:var(--nu)}
+.bk-box{margin:2px 0 10px;border:1px solid rgba(255,179,71,.6);border-radius:4px;background:rgba(255,179,71,.07);padding:8px 10px}
+.bk-boxh{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:4px}
+.bk-box p{margin:0;font-style:italic;font-size:14.5px;line-height:1.45;color:#f1e4cf;text-align:left}
+.bk-end{text-align:center;color:var(--nu);font-size:12px;margin-top:6px}
+.bk-folio{flex:0 0 auto;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:rgba(159,208,255,.6);padding:4px 0 6px}
+/* souvenirs : même page, teinte ambre passée */
+.bk-flash{background:linear-gradient(180deg,#2c2214 0%,#17120b 100%);border-color:rgba(232,183,122,.5)}
+.bk-flash .bk-strip{background:linear-gradient(90deg,rgba(232,183,122,.3),rgba(232,183,122,.06));border-color:rgba(232,183,122,.45);color:#e8c9a0}
+.bk-flash .bk-title{color:#ffe2b8;text-shadow:none}.bk-flash .bk-deck{color:#e3c9a4;border-color:rgba(232,183,122,.3)}
+.bk-flash .bk-text{color:#f1dcc0}.bk-flash .bk-fig{border-color:rgba(232,183,122,.5)}.bk-flash .bk-fig img{filter:sepia(.7) saturate(1.1) contrast(1.05)}
+.bk-flash .bk-drop>p:first-child::first-letter{color:#e8b77a}
+/* couverture et sommaire */
+.bk-mast,.sp2-mast{flex:0 0 auto;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:8px 10px;background:linear-gradient(180deg,rgba(74,163,255,.28),rgba(74,163,255,.06));border-bottom:2px solid rgba(74,163,255,.6)}
+.bk-date{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:46px;padding:3px 6px;border:1px solid rgba(74,163,255,.6);border-radius:3px;background:rgba(4,14,26,.5);font-family:var(--mono);line-height:1.1}
+.bk-date b{font-size:13px;color:#fff}.bk-date span{font-size:8.5px;letter-spacing:.14em;color:var(--nu-l)}
+.bk-mt,.sp2-name{font-family:var(--display);font-weight:700;font-size:clamp(20px,6.4vw,30px);letter-spacing:.06em;text-align:center;color:#fff;text-shadow:0 0 16px rgba(74,163,255,.6);line-height:1}
+.bk-cover .bk-cov{flex:1;height:auto;margin:10px 12px;border-radius:4px}
+.bk-covl{flex:0 0 auto;padding:0 14px 6px;display:flex;flex-direction:column;gap:5px}
+.bk-covl b{font-family:var(--display);font-size:24px;text-transform:uppercase;color:#fff;line-height:1}
+.bk-covl span{font-family:var(--display);font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--nu-l);border-left:2px solid var(--nu);padding-left:8px}
+.bk-swipe{text-align:right;padding:4px 14px 10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);animation:mgBlink 1.6s steps(1) infinite}
+.bk-tocl{list-style:none;margin:6px 0;padding:0;display:grid;gap:8px}
+.bk-tocl button{width:100%;display:grid;grid-template-columns:42px minmax(0,1fr);row-gap:2px;text-align:left;background:rgba(4,14,26,.4);border:1px solid rgba(74,163,255,.4);border-radius:4px;color:#e6f2ff;padding:10px 12px;cursor:pointer}
+.bk-tocl .n{grid-row:span 2;font-family:var(--display);font-size:24px;font-weight:700;color:var(--nu)}
+.bk-tocl .t{font-family:var(--display);font-size:16px;text-transform:uppercase}
+.bk-tocl .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.bk-bar{display:flex;justify-content:center;align-items:center;gap:6px;height:40px;padding:0 16px}
+.bk-bar button{background:transparent;border:1px solid var(--line);color:var(--hud);font-family:var(--mono);min-height:36px;cursor:pointer}
+.bk-nav{width:44px;font-size:20px}.bk-pg{padding:0 14px;font-size:11px;letter-spacing:.14em}
+/* écrans de presse Spectrum */
+.sp2-main{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:10px 12px 0;margin:8px;border:1px solid rgba(74,163,255,.45);border-radius:5px;background:rgba(4,14,26,.35)}
+.sp2-rub{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--nu-l);margin-bottom:4px}
+.sp2-h{font-family:var(--display);font-weight:700;font-size:clamp(20px,6vw,28px);line-height:1.04;text-transform:uppercase;color:#fff;margin:0 0 6px;text-align:center}
+.sp2-deck{font-family:"Spectral",Georgia,serif;font-style:italic;font-size:14px;line-height:1.35;color:#bcd9f3;margin:0 0 8px;text-align:center}
+.sp2-fig{height:calc(var(--bk-h) * .3)}
+.sp2-text{flex:1;min-height:0;overflow:hidden;font-family:"Spectral",Georgia,serif;font-size:15px;line-height:1.5;color:#dce9f6}
+.sp2-text p{margin:0;text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+.sp2-row{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 8px 8px}
+.sp2-box,.sp2-rows .sp2-box{display:flex;flex-direction:column;gap:4px;text-align:left;background:rgba(74,163,255,.1);border:1px solid rgba(74,163,255,.55);border-radius:4px;padding:8px 9px;color:#fff;cursor:pointer}
+.sp2-bt{font-family:var(--display);font-weight:600;font-size:12.5px;line-height:1.15;text-transform:uppercase}
+.sp2-bs{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--nu-l)}
+.sp2-rows{display:grid;gap:8px;margin-top:12px}
+.sp2-flashq{font-family:var(--display);font-size:22px;line-height:1.2;color:#fff;margin:6px 0 0}
+.sp2-tg{--nu:#4fd1b5;--nu-l:#a9f0de}.sp2-tg,.sp2-tg .sp2-main,.sp2-tg .sp2-box,.sp2-tg .sp2-mast,.sp2-tg .bk-date{border-color:rgba(79,209,181,.55)}.sp2-tg .sp2-mast{background:linear-gradient(180deg,rgba(79,209,181,.25),rgba(79,209,181,.05))}
+.sp2-vp{--nu:#ff9d4a;--nu-l:#ffd2a8}.sp2-vp,.sp2-vp .sp2-main,.sp2-vp .sp2-box,.sp2-vp .sp2-mast,.sp2-vp .bk-date{border-color:rgba(255,157,74,.55)}.sp2-vp .sp2-mast{background:linear-gradient(180deg,rgba(255,157,74,.25),rgba(255,157,74,.05))}
+.sp2-ch{--nu:#ff5a5a;--nu-l:#ffb3b3}.sp2-ch,.sp2-ch .sp2-main,.sp2-ch .sp2-box,.sp2-ch .sp2-mast,.sp2-ch .bk-date{border-color:rgba(255,90,90,.55)}.sp2-ch .sp2-mast{background:linear-gradient(180deg,rgba(255,90,90,.22),rgba(255,90,90,.05))}
+.sp-list{padding-bottom:20px}.sp-list .sp-une{height:auto;min-height:0}.sp-open .bk{margin-inline:0}.sp-open .sp-host{flex:1}
 </style>
 </head>
 <body>
@@ -1983,7 +2056,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   }
 
   /* ---------- mode lecture : pas de défilement de la page ---------- */
-  function readingMode(){var t=location.hash.slice(1);document.documentElement.classList.toggle("mg-reading",t==="journal"||t==="spectrum");}
+  function readingMode(){var t=location.hash.slice(1);document.documentElement.classList.toggle("mg-reading",t==="journal");}
   window.addEventListener("hashchange",readingMode);
 
   /* ---------- JOURNAL ---------- */
@@ -2044,8 +2117,154 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
     window.addEventListener("hashchange",function(){ov.hidden=true;});
   }
 
-  window.__rebuildJournal=function(){USEDF={};buildJournal();};
-  (window.__mgReady||Promise.resolve()).then(function(){setTimeout(function(){buildJournal();buildSpectrum();readingMode();},0);});
+  /* le livre (book.js) reprend le catalogue d'images ; l'ancien lecteur n'est plus lancé */
+  window.__rvCat={CAT:CAT,key:key,catOf:catOf};
+  (window.__mgReady||Promise.resolve()).then(function(){setTimeout(readingMode,0);});
+})();
+</script>
+<script>/* Journal en livre et Spectrum en écran de presse : chaque page est composée (bandeau, titre, chapeau, photo, texte, encarts), on tourne page par page */
+(function(){
+  var esc=function(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});};
+  var pad=function(n){return (n<10?"0":"")+n;};
+  var R=window.__rvCat||{CAT:[],key:function(){return "";},catOf:function(){}};
+  var MONTH={"01":"JAN","02":"FÉV","03":"MAR","04":"AVR","05":"MAI","06":"JUIN","07":"JUIL","08":"AOÛT","09":"SEPT","10":"OCT","11":"NOV","12":"DÉC"};
+
+  /* ---------- images ---------- */
+  function src(im){var W=window.__WIKI||{},wk=im.wiki&&W[im.wiki];if(wk)return {t:wk.thumb,f:wk.full,cred:1};if(im.url)return {t:im.thumb||im.url,f:im.url,cred:1};if(im.src)return {t:im.src,f:im.src};return null;}
+  function figHTML(im,cls){var s=im&&src(im);if(!s)return '<figure class="bk-fig bk-noimg '+(cls||"")+'"></figure>';
+    return '<figure class="bk-fig '+(cls||"")+'"><img src="'+esc(s.t)+'" data-full="'+esc(s.f)+'" alt="'+esc(im.legende||"")+'" onerror="if(this.dataset.full&&this.getAttribute(\'src\')!==this.dataset.full){this.src=this.dataset.full}else{this.parentNode.classList.add(\'bk-noimg\');this.remove()}">'+
+      (im.legende?'<figcaption>'+esc(im.legende)+(s.cred?'<span> · Star Citizen Wiki</span>':"")+'</figcaption>':"")+'</figure>';}
+  function real(c){return c.wiki||c.src||c.url;}
+  function picker(){var used={};return {
+    use:function(im){if(im)used[R.key(im)]=1;},
+    has:function(im){return im&&used[R.key(im)];},
+    pick:function(text,own){var best=null,bs=0,cand=(own||[]).concat(R.CAT);cand.forEach(function(c){if(!real(c)||used[R.key(c)])return;var kw=c.kw||(c.legende?new RegExp(c.legende.split(/[^A-Za-zÀ-ÿ']+/).filter(function(w){return w.length>5;}).join("|")||"$^","i"):null);if(!kw)return;
+        var m=String(text).match(new RegExp(kw.source,"gi")),sc=m?m.length*(c.weak?0.3:1)+((own||[]).indexOf(c)>=0?0.5:0):0;if(sc>bs){bs=sc;best=c;}});
+      if(!best)best=(own||[]).find(function(c){return real(c)&&!used[R.key(c)];})||R.CAT.find(function(c){return real(c)&&!used[R.key(c)]&&!c.weak;})||R.CAT.find(function(c){return real(c)&&!used[R.key(c)];});
+      if(best)used[R.key(best)]=1;return best||null;}};}
+
+  /* ---------- composeur de pages ---------- */
+  function fitsIn(box){var last=box.lastElementChild;if(!last)return true;var lb=last.getBoundingClientRect().bottom,bb=box.getBoundingClientRect().bottom;return lb<=bb-2;}
+  function splitWords(el,txt,fits){var w=txt.split(/\s+/),lo=0,hi=w.length,ok=0;while(lo<=hi){var mid=(lo+hi)>>1;el.textContent=w.slice(0,mid).join(" ");if(fits()){ok=mid;lo=mid+1;}else hi=mid-1;}
+    if(ok<5){el.textContent="";return null;}el.textContent=w.slice(0,ok).join(" ");return w.slice(ok).join(" ");}
+  /* story = {kind,strip,kicker,title,deck,paras[],own[],seeker,flash,id} */
+  function composeStory(stage,st,P,H){
+    var pages=[],queue=st.paras.map(function(t){return {t:t,c:false};}),n=0,boxDone=!st.seeker;
+    while(queue.length||!boxDone){
+      var pg=document.createElement("section");pg.className="bk-page"+(st.flash?" bk-flash":"");pg.style.height=H+"px";
+      var first=n===0,figTop=first||n%2===0;
+      pg.innerHTML='<header class="bk-strip"><span>'+esc(st.strip)+'</span><b>'+esc(st.kicker)+'</b></header><div class="bk-in">'+
+        (first?'<div class="bk-kick">'+esc(st.loc||"")+'</div><h2 class="bk-title">'+esc(st.title)+'</h2>'+(st.deck?'<p class="bk-deck">'+esc(st.deck)+'</p>':""):'<div class="bk-run">'+esc(st.title)+'</div>')+
+        (figTop?'<div class="bk-figslot"></div>':"")+'<div class="bk-text'+(first?" bk-drop":"")+'"></div>'+(figTop?"":'<div class="bk-figslot"></div>')+'</div><footer class="bk-folio"></footer>';
+      stage.appendChild(pg);var text=pg.querySelector(".bk-text"),fits=function(){return fitsIn(text);};
+      if(!boxDone&&(n===1||(!queue.length))){var bx=document.createElement("aside");bx.className="bk-box";bx.innerHTML='<div class="bk-boxh">Seeker · IA de bord</div><p>'+esc(st.seeker)+'</p>';text.appendChild(bx);if(fits())boxDone=true;else bx.remove();}
+      var added=0;
+      while(queue.length){var q=queue[0],p=document.createElement("p");if(q.c)p.className="cont";p.textContent=q.t;text.appendChild(p);
+        if(fits()){queue.shift();added++;continue;}
+        var rest=splitWords(p,q.t,fits);if(rest===null){p.remove();break;}queue[0]={t:rest,c:true};added++;break;}
+      if(!added&&!boxDone&&!queue.length){/* encart seul sur sa page */var bx2=document.createElement("aside");bx2.className="bk-box";bx2.innerHTML='<div class="bk-boxh">Seeker · IA de bord</div><p>'+esc(st.seeker)+'</p>';text.appendChild(bx2);boxDone=true;}
+      if(!queue.length&&boxDone){var end=document.createElement("div");end.className="bk-end";end.textContent="■";text.appendChild(end);if(!fits())end.remove();}
+      var im=P.pick(text.textContent+" "+(first?st.title:""),st.own);pg.querySelector(".bk-figslot").outerHTML=figHTML(im,first?"bk-hero":"");
+      pages.push(pg);n++;if(n>40)break;}
+    return pages;}
+
+  /* ---------- lecteur page par page ---------- */
+  function Book(panel,opt){
+    [].slice.call(panel.children).forEach(function(c){if(!c.classList.contains("bk"))c.classList.add("rv-hide");});
+    var old=panel.querySelector(".bk");if(old)old.remove();
+    var bk=document.createElement("div");bk.className="bk "+(opt.cls||"");
+    bk.innerHTML='<div class="bk-view"><div class="bk-track"></div></div><div class="bk-bar"><button type="button" class="bk-nav" data-d="-1" aria-label="Page précédente">‹</button><button type="button" class="bk-pg" data-toc><span class="bk-n">01</span> / <span class="bk-t">01</span></button><button type="button" class="bk-nav" data-d="1" aria-label="Page suivante">›</button></div>';
+    panel.appendChild(bk);
+    var view=bk.querySelector(".bk-view"),track=bk.querySelector(".bk-track"),nEl=bk.querySelector(".bk-n"),tEl=bk.querySelector(".bk-t"),W=0,H=0,N=1,cur=0,marks={};
+    function layout(){if(!bk.isConnected||!panel.offsetParent)return;var top=view.getBoundingClientRect().top,barH=bk.querySelector(".bk-bar").offsetHeight||44;
+      H=Math.max(420,Math.floor((opt.height?opt.height():window.innerHeight-Math.max(0,top))-barH-6));W=view.clientWidth;var pw=Math.min(W,560);
+      track.innerHTML="";track.style.transition="none";track.style.setProperty("--pw",pw+"px");bk.style.setProperty("--bk-h",H+"px");
+      var stage=document.createElement("div");stage.className="bk-stage";stage.style.width=pw+"px";bk.appendChild(stage);
+      var res=opt.build(stage,H,pw);stage.remove();marks=res.marks||{};
+      res.pages.forEach(function(pg,i){var cell=document.createElement("div");cell.className="bk-cell";cell.style.width=W+"px";cell.appendChild(pg);var f=pg.querySelector(".bk-folio");if(f)f.textContent="— "+(i+1)+" —";track.appendChild(cell);});
+      N=res.pages.length;tEl.textContent=pad(N);if(opt.start!=null&&!bk._started){cur=Math.min(N-1,opt.start);bk._started=1;}if(cur>N-1)cur=N-1;place(false);if(opt.after)opt.after(bk,marks,go);}
+    function place(anim){track.style.transition=anim?"transform .5s cubic-bezier(.3,.7,.2,1)":"none";track.style.transform="translateX("+(-cur*W)+"px)";nEl.textContent=pad(cur+1);
+      [].slice.call(track.children).forEach(function(c,i){c.classList.toggle("on",i===cur);});}
+    function go(i){i=Math.max(0,Math.min(N-1,i));if(i===cur)return;var dir=i>cur?1:-1;cur=i;bk.dataset.dir=dir;place(true);if(window.mgFx)mgFx.tick();}
+    bk.addEventListener("click",function(e){var b=e.target.closest("[data-d],[data-toc],[data-goto]");if(!b)return;
+      if(b.dataset.d)go(cur+parseInt(b.dataset.d,10));else if(b.hasAttribute("data-toc")){if(opt.tocPage>=0)go(opt.tocPage||0);}else go(marks[b.dataset.goto]||0);});
+    var sx=null,sy=null,st=0;view.style.touchAction="pan-y";
+    view.addEventListener("pointerdown",function(e){sx=e.clientX;sy=e.clientY;st=Date.now();});
+    view.addEventListener("pointerup",function(e){if(sx===null)return;var dx=e.clientX-sx,dy=e.clientY-sy;sx=null;
+      if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){go(cur+(dx<0?1:-1));return;}
+      if(Math.abs(dx)<8&&Math.abs(dy)<8&&Date.now()-st<400&&!e.target.closest("a,button,.term,[data-goto]")){var r=view.getBoundingClientRect(),x=e.clientX-r.left;if(x>r.width*0.8)go(cur+1);else if(x<r.width*0.2)go(cur-1);}});
+    var rT=null;window.addEventListener("resize",function(){clearTimeout(rT);rT=setTimeout(function(){if(bk.isConnected&&panel.offsetParent&&(view.clientWidth!==W))layout();},200);});
+    window.addEventListener("hashchange",function(){if(bk.isConnected&&!panel.hidden)setTimeout(function(){if(!W||view.clientWidth!==W||!track.children.length)layout();},50);});
+    if(!panel.hidden)setTimeout(layout,40);
+    if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){if(panel.offsetParent)layout();});
+    return {layout:layout,go:go};}
+
+  /* ---------- JOURNAL ---------- */
+  function sentences(t){return String(t).split(/(?<=[.!?»])\s+(?=[A-ZÀ-Ý«])/);}
+  function buildJournal(){
+    var panel=document.getElementById("tab-journal");if(!panel)return;
+    var J=window.__mgGet?__mgGet("journal"):{},entries=Object.keys(J).map(function(k){return J[k];}).sort(function(a,b){return a.ordre-b.ordre;}),last=entries[entries.length-1];
+    var lede=panel.querySelector(".lede"),passe=panel.querySelector("#passe .text"),S=[];
+    var month=(last&&last.date)||"Octobre 2956";
+    if(lede)S.push({id:"pro",strip:"Journal de bord · Exo",kicker:"Prologue",loc:"Entrée 0 · Approche de Lorville",title:"Retour à Lorville",deck:"Dix-huit ans après l'avoir fuie, Exo revient dans la ville qui l'a vu naître.",paras:[].slice.call(lede.querySelectorAll("p")).map(function(p){return p.textContent.trim();}).filter(Boolean),own:[]});
+    if(passe){var title=(passe.querySelector("h2")||{}).textContent||"Origines";
+      S.push({id:"passe",strip:"Mémoire de Seeker · fichier restauré",kicker:"Souvenirs",loc:"Lorville · 2921 → 2938",title:title,deck:"Un nom laissé à Hurston, une dette, et un gamin qui apprend que la loi dépend de celui qui la lit.",paras:[].slice.call(passe.querySelectorAll("p")).map(function(p){return p.textContent.trim();}).filter(Boolean),own:[],flash:true});}
+    entries.forEach(function(e,i){S.push({id:"e"+i,strip:"Journal de bord · Exo",kicker:(e.numero||"")+" · "+(e.date||""),loc:e.lieu||"",title:e.titre||"",deck:e.chapeau||sentences((e.paragraphes||[""])[0])[0],
+      paras:(e.chapeau?e.paragraphes:dropFirst(e.paragraphes||[])),own:(e.images||[]).map(function(im){return im.scene==="salvage"?Object.assign({},im,{scene:"epave"}):im;}).map(function(im){var c=R.catOf(im);return c?Object.assign({},c,im,{legende:im.legende||c.legende,wiki:im.wiki||c.wiki,kw:c.kw}):im;}).filter(function(im){return im.src!=="exo.webp";}),seeker:e.seeker||""});});
+    function dropFirst(ps){if(!ps.length)return ps;var s=sentences(ps[0]);var rest=s.slice(1).join(" ");return (rest?[rest]:[]).concat(ps.slice(1));}
+    Book(panel,{cls:"bk-journal",tocPage:1,build:function(stage,H,pw){var P=picker();P.use({src:"exo.webp"});var pages=[],marks={};
+        /* couverture */
+        var cv=document.createElement("section");cv.className="bk-page bk-cover";cv.style.height=H+"px";
+        cv.innerHTML='<header class="bk-mast"><div class="bk-date"><b>2956</b><span>'+esc(month.split(" ")[0].slice(0,4).toUpperCase())+'</span></div><div class="bk-mt">JOURNAL DE BORD</div><div class="bk-date r"><b>N°'+pad(last?last.ordre:0)+'</b><span>EXO</span></div></header>'+
+          '<figure class="bk-fig bk-cov"><img src="exo.webp" alt="Exo devant son Vulture"></figure><div class="bk-covl"><b>'+esc(last?last.titre:"Retour à Lorville")+'</b>'+S.map(function(s){return '<span>'+esc(s.title)+'</span>';}).join("")+'</div><div class="bk-swipe">Glisse pour tourner la page →</div>';
+        stage.appendChild(cv);pages.push(cv);
+        var toc=document.createElement("section");toc.className="bk-page bk-toc";toc.style.height=H+"px";toc.innerHTML='<header class="bk-strip"><span>Journal de bord · Exo</span><b>Sommaire</b></header><div class="bk-in"><h2 class="bk-title">Dans ce journal</h2><ol class="bk-tocl"></ol></div><footer class="bk-folio"></footer>';stage.appendChild(toc);pages.push(toc);
+        S.forEach(function(st){marks[st.id]=pages.length;composeStory(stage,st,P,H).forEach(function(p){pages.push(p);});});
+        toc.querySelector(".bk-tocl").innerHTML=S.map(function(st){return '<li><button type="button" data-goto="'+st.id+'"><span class="n">'+pad(marks[st.id]+1)+'</span><span class="t">'+esc(st.title)+'</span><span class="k">'+esc(st.kicker)+'</span></button></li>';}).join("");
+        return {pages:pages,marks:marks};}});
+  }
+
+  /* ---------- SPECTRUM : une page = un écran de presse ---------- */
+  var OUT={"New United":"nu","Terra Gazette":"tg","Vox Populi":"vp","Crosshair":"ch"};
+  function thumbHTML(im){var s=im&&src(im);return s?'<img src="'+esc(s.t)+'" data-full="'+esc(s.f)+'" alt="" onerror="if(this.dataset.full&&this.getAttribute(\'src\')!==this.dataset.full){this.src=this.dataset.full}else{this.style.visibility=\'hidden\'}">':"";}
+  function pressPage(a,i,arts,em,H){var o=OUT[a.source]||"nu",others=arts.filter(function(_,j){return j!==i;}).slice(i%2?1:0).slice(0,2);
+    var pg=document.createElement("section");pg.className="bk-page sp2 sp2-"+o;pg.style.height=H+"px";
+    var deck=a.chapeau||sentences(a.texte||"")[0]||"",body=a.chapeau?a.texte:sentences(a.texte||"").slice(1).join(" ");
+    pg.innerHTML='<header class="sp2-mast"><div class="bk-date"><b>'+esc(em[1]||"2956")+'</b><span>'+esc((em[0]||"").slice(0,4).toUpperCase())+'</span></div><div class="sp2-name">'+esc((a.source||"Spectrum").toUpperCase())+'</div><div class="bk-date r"><b>'+pad(i+1)+'</b><span>/ '+pad(arts.length)+'</span></div></header>'+
+      '<div class="sp2-main"><div class="sp2-rub">'+esc(a.rubrique||"")+'</div><h2 class="sp2-h">'+esc(a.titre)+'</h2><p class="sp2-deck">'+esc(deck)+'</p>'+figHTML(a.image||{},"sp2-fig")+'<div class="sp2-text"><p>'+esc(body)+'</p></div></div>'+
+      '<div class="sp2-row">'+others.map(function(b){var j=arts.indexOf(b);return '<button type="button" class="sp2-box" data-goto="a'+j+'"><span class="sp2-bt">'+esc(b.titre)+'</span><span class="sp2-bs">'+esc(b.source||"")+' · '+esc(b.rubrique||"")+'</span></button>';}).join("")+'</div>';
+    return pg;}
+  function buildSpectrum(){
+    var panel=document.getElementById("tab-spectrum");if(!panel)return;
+    var D=window.__mgGet?__mgGet("spectrum"):{},eds=Object.keys(D).map(function(k){return D[k];}).sort(function(a,b){return b.ordre-a.ordre;}),ed=eds[0]||{titres:[]};
+    var arts=(ed.articles&&ed.articles.length)?ed.articles:(ed.titres||[]),em=String(ed.edition||"Octobre 2956").split(" "),lead=arts[0]||{};
+    /* la une, en liste */
+    [].slice.call(panel.children).forEach(function(c){if(!c.classList.contains("sp-list")&&!c.classList.contains("sp-open"))c.classList.add("rv-hide");});
+    var old=panel.querySelector(".sp-list");if(old)old.remove();
+    var L=document.createElement("div");L.className="sp-list";
+    L.innerHTML='<div class="sp-une"><div class="sp-mast">SPECTRUM</div><div class="sp-line"><span>Édition '+esc(ed.edition||"")+'</span><span>Réseau d\'information de l\'UEE</span></div>'+
+      '<button type="button" class="sp-lead" data-art="0"><span class="sp-lead-img">'+thumbHTML(lead.image)+'</span><span class="sp-rub">'+esc(lead.rubrique||"")+(lead.source?' · '+esc(lead.source):"")+'</span><span class="sp-lead-t">'+esc(lead.titre||"")+'</span></button>'+
+      '<ul class="sp-heads">'+arts.slice(1).map(function(a,i){return '<li><button type="button" data-art="'+(i+1)+'"><span class="sp-th">'+thumbHTML(a.image)+'</span><span class="sp-ht"><span class="sp-rub">'+esc(a.rubrique)+(a.source?' · '+esc(a.source):"")+'</span>'+esc(a.titre)+'</span></button></li>';}).join("")+'</ul>'+
+      (ed.annonce?'<div class="sp-flash"><b>Flash</b> '+esc(ed.annonce)+'</div>':"")+'</div>';
+    panel.appendChild(L);
+    /* l'article s'ouvre en écran de presse, et on peut passer aux suivants */
+    var ov=panel.querySelector(".sp-open");if(!ov){ov=document.createElement("div");ov.className="sp-open";ov.hidden=true;panel.appendChild(ov);}
+    function close(){if(ov.hidden)return;ov.classList.add("out");setTimeout(function(){ov.hidden=true;ov.classList.remove("out");ov.innerHTML="";},260);}
+    function open(i){ov.innerHTML='<div class="sp-top"><button type="button" class="sp-back">‹ À la une</button><span class="sp-top-ed">Spectrum · '+esc(ed.edition||"")+'</span></div><div class="sp-host"></div>';
+      var top=Math.max(0,panel.getBoundingClientRect().top);ov.style.top=top+"px";ov.hidden=false;ov.classList.remove("in");void ov.offsetWidth;ov.classList.add("in");
+      Book(ov.querySelector(".sp-host"),{cls:"bk-spectrum",start:i,tocPage:-1,height:function(){return window.innerHeight-top-44;},build:function(stage,H){var pages=[],marks={};
+        arts.forEach(function(a,k){marks["a"+k]=k;var pg=pressPage(a,k,arts,em,H);stage.appendChild(pg);
+          var fig=pg.querySelector(".sp2-fig"),txt=pg.querySelector(".sp2-text"),fh=Math.round(H*0.30),fs=15;function over(){return !fitsIn(txt);}
+          if(fig)fig.style.height=fh+"px";while(over()&&fh>110){fh-=12;fig.style.height=fh+"px";}while(over()&&fs>12){fs-=0.5;txt.style.fontSize=fs+"px";}pages.push(pg);});
+        return {pages:pages,marks:marks};}});
+      if(window.mgFx)mgFx.open();}
+    L.addEventListener("click",function(e){var b=e.target.closest("[data-art]");if(b)open(parseInt(b.dataset.art,10));});
+    ov.addEventListener("click",function(e){if(e.target.closest(".sp-back"))close();});
+    window.addEventListener("hashchange",function(){if(location.hash!=="#spectrum")close();});
+  }
+
+  window.__rebuildJournal=buildJournal;
+  (window.__mgReady||Promise.resolve()).then(function(){setTimeout(function(){buildJournal();buildSpectrum();},0);});
 })();
 </script>
 <script>/* Carte 3D : galaxie, système, planète — moteur maison (canvas). Glisser de côté = tourner, vertical = défiler la page, pincer = zoomer */
@@ -2572,7 +2791,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
     {name:"ajouter_image",description:"Ajoute une photo du wiki (nom exact renvoyé par chercher_image) dans une entrée du journal d'Exo, avec une légende. Par défaut : la dernière entrée.",input_schema:{type:"object",properties:{fichier:{type:"string"},legende:{type:"string",description:"Légende courte en français, liée à ce qu'Exo a vécu"},entree:{type:"string",description:"Facultatif : id ou titre de l'entrée"}},required:["fichier","legende"]}},
     {name:"noter",description:"Ajoute une note au carnet de bord de la session (ce qu'Exo vient de vivre, voir, trouver, subir). À utiliser dès qu'Exo dit « note », « note que », « retiens ». Une note = un fait, reformulé court.",input_schema:{type:"object",properties:{texte:{type:"string"},lieu:{type:"string",description:"Facultatif : où ça s'est passé"}},required:["texte"]}},
     {name:"lire_carnet",description:"Lit les notes du carnet de bord pas encore utilisées dans le journal.",input_schema:{type:"object",properties:{}}},
-    {name:"ajouter_entree_journal",description:"Crée une nouvelle entrée dans le journal d'Exo, rédigée à partir du carnet. Les notes utilisées sont ensuite archivées.",input_schema:{type:"object",properties:{titre:{type:"string"},lieu:{type:"string",description:"ex. « Lorville → Magda »"},paragraphes:{type:"array",items:{type:"string"}},seeker:{type:"string",description:"Une phrase de Seeker, à la première personne, robotique et émue"},images:{type:"array",items:{type:"object",properties:{fichier:{type:"string"},legende:{type:"string"}},required:["fichier","legende"]},description:"Photos du wiki trouvées avec chercher_image (noms exacts)"}},required:["titre","lieu","paragraphes"]}},
+    {name:"ajouter_entree_journal",description:"Crée une nouvelle entrée dans le journal d'Exo, rédigée à partir du carnet. Les notes utilisées sont ensuite archivées.",input_schema:{type:"object",properties:{titre:{type:"string"},lieu:{type:"string",description:"ex. « Lorville → Magda »"},chapeau:{type:"string",description:"Une phrase d'accroche en italique sous le titre, comme dans un magazine"},paragraphes:{type:"array",items:{type:"string"}},seeker:{type:"string",description:"Une phrase de Seeker, à la première personne, robotique et émue"},images:{type:"array",items:{type:"object",properties:{fichier:{type:"string"},legende:{type:"string"}},required:["fichier","legende"]},description:"Photos du wiki trouvées avec chercher_image (noms exacts)"}},required:["titre","lieu","paragraphes"]}},
     {name:"marquer_lieu",description:"Marque un endroit personnel sur la carte (une grotte, une épave, un point de récolte…) avec une note, rattaché à la planète, lune ou lieu le plus proche.",input_schema:{type:"object",properties:{nom:{type:"string",description:"Nom court du repère, ex. « Grotte à Kopion »"},note:{type:"string"},pres_de:{type:"string",description:"Planète, lune, ville ou station la plus proche"}},required:["nom","pres_de"]}},
     {name:"ouvrir_hangar",description:"Ouvre la fiche d'un vaisseau d'Exo dans le Hangar.",input_schema:{type:"object",properties:{vaisseau:{type:"string",enum:["f7c","vulture","corsair","pulse"]}},required:["vaisseau"]}},
     {name:"ouvrir_codex",description:"Ouvre une fiche du Codex (lore, peuples, faune, flore, factions, lexique).",input_schema:{type:"object",properties:{sujet:{type:"string"}},required:["sujet"]}},
@@ -2650,7 +2869,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
     var paras=(inp.paragraphes||[]).map(String).filter(Boolean);if(paras.length<2)return {ok:false,erreur:"il faut au moins deux paragraphes"};
     var imgs=[];for(var i=0;i<(inp.images||[]).length&&i<3;i++){var im=inp.images[i],nm=String(im.fichier||"").replace(/^File:/,"");try{var info=await imgInfo(nm);if(info)imgs.push({url:info.url,thumb:info.thumburl||info.url,wikiname:nm,legende:String(im.legende||"").slice(0,140)});}catch(_){}}
     var n=max+1,id="e-s"+Date.now();
-    await __mgDB.collection("journal").doc(id).set({ordre:n,numero:"Entrée "+n,date:(last&&last.date)||"2956",lieu:String(inp.lieu||""),titre:String(inp.titre||"Sans titre"),paragraphes:paras,seeker:inp.seeker||"",images:imgs,source:"seeker"});
+    await __mgDB.collection("journal").doc(id).set({ordre:n,numero:"Entrée "+n,date:(last&&last.date)||"2956",lieu:String(inp.lieu||""),titre:String(inp.titre||"Sans titre"),chapeau:String(inp.chapeau||""),paragraphes:paras,seeker:inp.seeker||"",images:imgs,source:"seeker"});
     var P=pending();for(var j=0;j<P.length;j++)await __mgDB.collection("carnet").doc(P[j].id).update({utilise:true,entree:id});
     renderCarnet();if(window.__rebuildJournal)__rebuildJournal();return {ok:true,entree:"Entrée "+n+" · "+inp.titre,images:imgs.length};}
   async function marquerLieu(inp){var ap=A(),R=resolve(ap,inp.pres_de||"");if(!R)return {ok:false,erreur:"lieu de rattachement introuvable : "+inp.pres_de};
