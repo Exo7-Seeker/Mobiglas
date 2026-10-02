@@ -1166,6 +1166,12 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
 .tab-panel.mg-swl{animation:mgSwL .24s ease-out}
 .tab-panel.mg-swr{animation:mgSwR .24s ease-out}
 @media (prefers-reduced-motion:reduce){.tab-panel.mg-swl,.tab-panel.mg-swr{animation:none}}
+
+/* Hangar : bandeau des vaisseaux défilant sur le côté */
+@media (max-width:820px){
+  #hangar-mount .inv-group{display:flex!important;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+  #hangar-mount .inv-item{flex:0 0 96px;scroll-snap-align:center}
+}
 </style>
 </head>
 <body>
@@ -2449,7 +2455,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
     var sx=null,sy=null,st=0;view.style.touchAction="pan-y";
     view.addEventListener("pointerdown",function(e){sx=e.clientX;sy=e.clientY;st=Date.now();});
     view.addEventListener("pointerup",function(e){if(sx===null)return;var dx=e.clientX-sx,dy=e.clientY-sy;sx=null;
-      if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){go(cur+(dx<0?1:-1));return;}
+      if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.8){go(cur+(dx<0?1:-1));return;}
       if(Math.abs(dx)<8&&Math.abs(dy)<8&&Date.now()-st<400&&!e.target.closest("a,button,.term,[data-goto]")){var r=view.getBoundingClientRect(),x=e.clientX-r.left;if(x>r.width*0.8)go(cur+1);else if(x<r.width*0.2)go(cur-1);}});
     var rT=null;window.addEventListener("resize",function(){clearTimeout(rT);rT=setTimeout(function(){if(bk.isConnected&&panel.offsetParent&&(view.clientWidth!==W))layout();},200);});
     window.addEventListener("hashchange",function(){if(bk.isConnected&&!panel.hidden)setTimeout(function(){if(!W||view.clientWidth!==W||!track.children.length)layout();},50);});
@@ -3003,7 +3009,8 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   status();
   mount.addEventListener("click",function(e){var d=e.target.closest(".d-story");if(d)d.classList.toggle("open");});
   var SHORTN={"ship-f7c":"F7C","ship-vulture":"Vulture","ship-corsair":"Corsair","ship-pulse":"Pulse"};
-  function shorts(){[].slice.call(mount.querySelectorAll(".inv-item")).forEach(function(b){if(b.dataset.short)return;var t=b.querySelector(".t");b.dataset.short=SHORTN[b.dataset.id]||(t?t.textContent.split(" ")[0]:"");});}
+  function centerActive(){var g=mount.querySelector(".inv-group"),a=g&&g.querySelector('.inv-item[aria-current="true"]');if(g&&a&&g.scrollWidth>g.clientWidth)g.scrollLeft=a.offsetLeft-(g.clientWidth-a.offsetWidth)/2;}
+  function shorts(){centerActive();[].slice.call(mount.querySelectorAll(".inv-item")).forEach(function(b){if(b.dataset.short)return;var t=b.querySelector(".t");b.dataset.short=SHORTN[b.dataset.id]||(t?t.textContent.split(" ")[0]:"");});}
   /* hologramme en tête de la fiche du vaisseau */
   var cur=null;
   function inject(force){var sel=mount.querySelector('.inv-item[aria-current="true"]'),id=sel&&sel.dataset.id,m=id&&/^ship-(\w+)$/.exec(id),det=mount.querySelector(".inv-detail");if(!det)return;
@@ -3053,9 +3060,9 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
     var el=tgt;if(!el||!el.closest)return;if(document.getElementById("mg-boot")&&document.getElementById("mg-boot").isConnected)return;
     var dir=dx<0?1:-1;
     var side=el.closest("#hangar-mount .inv-side,#contacts-mount .inv-side");
+    if(side&&el.closest("#hangar-mount"))return;
     if(side&&!el.closest("input")){goItem(side,dir);return;}
-    if(PG&&((dir<0&&PG.n<=1)||(dir>0&&PG.n>=PG.t))){goTab(dir);return;}
-    if(el.closest(BLOCK)||hScroll(el))return;
+    if(!el.closest(".bk-bar")&&(el.closest(BLOCK)||hScroll(el)))return;
     goTab(dir);},{passive:true});
   document.addEventListener("touchcancel",function(){on=false;},{passive:true});
 })();
