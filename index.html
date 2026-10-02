@@ -1284,6 +1284,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
       <div class="row">
         <label class="chk"><input type="checkbox" id="sk-voice"> Seeker parle à voix haute</label>
         <label class="chk"><input type="checkbox" id="sk-wakeamb"> Écouter « Seeker… » partout dans l'appli (sans écran mains libres)</label>
+        <div class="btns"><button type="button" id="sk-wlogcopy">Copier le journal d'écoute</button></div>
         <label class="chk"><input type="checkbox" id="sk-hfauto"> Démarrer en mains libres : écoute continue « Seeker… »</label>
         <label class="chk"><input type="checkbox" id="sk-sound"> Sons d'interface</label>
         <label class="chk"><input type="checkbox" id="sk-vibe"> Vibrations</label>
@@ -3824,9 +3825,11 @@ window.AMBIANCE={
   var WAKE_OLD=null;
   function pk(w){w=w.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z]/g,"");if(w.length<4||w.length>9)return"";return w.replace(/ck|qu|ch(?=[aou])/g,"k").replace(/c(?=[aou])/g,"k").replace(/c/g,"s").replace(/[zx]/g,"s").replace(/ph/g,"f").replace(/[aeiouyh]+/g,"").replace(/(.)\1+/g,"$1");}
   function findWake(t){var m=t.match(WAKE);if(m)return m;var re=/[^\s,.;:!?«»"]+/g,w,n=0;while((w=re.exec(t))&&n<4){n++;var kk=pk(w[0]);if(kk==="skr"||(kk==="sk"&&/^(?:se|si|ci|cy|sy)/i.test(w[0])&&w[0].length<=6)){var e=w.index+w[0].length,rest=t.slice(e).match(/^[\s,.:;!?-]*/)[0];var a=[t.slice(w.index,e)+rest];a.index=w.index;return a;}}return null;}
+  var gesture=false;document.addEventListener("pointerdown",function(){gesture=true;},{capture:true});
+  var WL=[],WT0=Date.now();function wlog(x){WL.push(((Date.now()-WT0)/1000).toFixed(1)+"s "+x);if(WL.length>120)WL.shift();}window.__wlog=wlog;
   function wstat(t){var e=$("sk-wakestat");if(e)e.textContent=t||"";}
-  function startWake(){if(!wake||wrec||paused||busy)return;var rec=wrec=mkRec(true);rec.interimResults=true;var done={},iT=null,lastR=null,lastIdx=-1;
-    rec.onstart=function(){hfMode("wake",idleTxt());wstat("👂 J'écoute : dis « Seeker… »");};
+  function startWake(){if(!wake||wrec||paused||busy)return;var rec=wrec=mkRec(true);rec.interimResults=true;var done={},iT=null,lastR=null,lastIdx=-1,lastErr="";
+    rec.onstart=function(){wlog("START (hfOn="+hfOn+")");hfMode("wake",idleTxt());wstat("👂 J'écoute : dis « Seeker… »");};
     /* traite une phrase (finale ou, faute de mieux, intermédiaire) */
     function handle(R){var hit=null,heard=R[0].transcript.trim();if(!heard)return;
       for(var k=0;k<R.length&&!hit;k++){var tk=R[k].transcript.trim(),m=findWake(tk);if(m)hit={t:tk,cmd:tk.slice(m.index+m[0].length).trim()};}
@@ -3838,13 +3841,16 @@ window.AMBIANCE={
       else if(!cmdWait){HH.textContent="… "+fixNames(heard)+" (pas de « Seeker »)";wstat("Entendu : « "+cut(fixNames(heard),50)+" » — pas de « Seeker »");}
       else if(cmdWait){HH.textContent="« "+fixNames(heard)+" »";cmdWait=false;stopWake();hfMode("thinking","Analyse…");ask(fixNames(heard));}}
     rec.onresult=function(ev){
+      for(var i=ev.resultIndex;i<ev.results.length;i++){wlog((ev.results[i].isFinal?"FINAL ":"interim ")+"#"+i+" ["+ev.results[i].length+"alt] « "+ev.results[i][0].transcript+" »");}
       for(var i=ev.resultIndex;i<ev.results.length;i++){var R=ev.results[i];
         if(R.isFinal){clearTimeout(iT);if(!done[i]){done[i]=1;handle(R);if(wrec!==rec)return;}}
         else{lastR=R;lastIdx=i;if(!done[i]){var tt=R[0].transcript.trim();if(tt&&!cmdWait)wstat("Entendu : « "+cut(fixNames(tt),50)+" »");
           clearTimeout(iT);(function(RR,ii){iT=setTimeout(function(){if(wrec!==rec||done[ii])return;done[ii]=1;handle(RR);},1100);})(R,i);}}}};
-    rec.onerror=function(ev){if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){wake=false;WK.checked=false;hfMode("","Micro refusé : autorise-le dans Chrome");wstat("Micro refusé : autorise-le dans Chrome (cadenas de l'adresse → Micro)");}else if(ev.error!=="no-speech"&&ev.error!=="aborted"){wstat("Écoute interrompue ("+ev.error+") : nouvel essai…");}};
-    rec.onend=function(){clearTimeout(iT);if(wrec===rec)wrec=null;if(lastR&&!done[lastIdx]){done[lastIdx]=1;try{handle(lastR);}catch(_){}}if(wake&&!paused&&!busy&&!wrec)setTimeout(startWake,30);};
+    rec.onerror=function(ev){wlog("ERROR "+ev.error);lastErr=ev.error;if((ev.error==="not-allowed"||ev.error==="service-not-allowed")&&!gesture){wstat("Micro : en attente d'un premier toucher de l'écran…");}else if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){wake=false;WK.checked=false;hfMode("","Micro refusé : autorise-le dans Chrome");wstat("Micro refusé : autorise-le dans Chrome (cadenas de l'adresse → Micro)");}else if(ev.error!=="no-speech"&&ev.error!=="aborted"){wstat("Écoute interrompue ("+ev.error+") : nouvel essai…");}};
+    rec.onend=function(){wlog("END");clearTimeout(iT);if(wrec===rec)wrec=null;if(lastR&&!done[lastIdx]){done[lastIdx]=1;try{handle(lastR);}catch(_){}}if(wake&&!paused&&!busy&&!wrec)setTimeout(startWake,(lastErr==="not-allowed"||lastErr==="service-not-allowed"||lastErr==="network")?1500:30);};
     try{rec.start();}catch(_){if(wrec===rec)wrec=null;setTimeout(startWake,500);}}
+  (function(){var b=$("sk-wlogcopy");if(!b)return;b.onclick=function(){var t="Journal d'écoute Seeker (v64+)\n"+WL.join("\n");var done=function(ok){b.textContent=ok?"Journal copié ✓ — colle-le dans le chat":"Copie impossible";setTimeout(function(){b.textContent="Copier le journal d'écoute";},3500);};
+      try{navigator.clipboard.writeText(t).then(function(){done(true);},function(){done(false);});}catch(_){done(false);}};})();
   /* filet de sécurité : si l'écoute est tombée sans prévenir, on la relance */
   setInterval(function(){if(wake&&!wrec&&!paused&&!busy&&!window.__skSpeaking&&!document.hidden){try{startWake();}catch(_){}}},4000);
   /* « Seeker » seul : la phrase suivante est la commande */
