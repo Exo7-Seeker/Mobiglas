@@ -2842,7 +2842,16 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   /* ---------- voix ---------- */
   var voice=null;
   function pickVoice(){var vs=(window.speechSynthesis&&speechSynthesis.getVoices())||[];var want=g(K.vname,"");voice=(want&&vs.find(function(v){return v.name===want;}))||vs.find(function(v){return /^fr/i.test(v.lang)&&/male|homme|thomas|paul|henri/i.test(v.name);})||vs.find(function(v){return /^fr/i.test(v.lang);})||null;}
-  function fillVoices(){var sel=$("sk-vpick");if(!sel||!window.speechSynthesis)return;var vs=speechSynthesis.getVoices()||[];var fr=vs.filter(function(v){return /^fr/i.test(v.lang);});if(!fr.length)fr=vs;var want=g(K.vname,"");sel.innerHTML="";var o=document.createElement("option");o.value="";o.textContent="Automatique";sel.appendChild(o);fr.forEach(function(v,i){var op=document.createElement("option");op.value=v.name;op.textContent=(i+1)+". "+v.name+" ("+v.lang+")";sel.appendChild(op);});sel.value=want;if(sel.value!==want)sel.value="";}
+  function fillVoices(){var sel=$("sk-vpick");if(!sel||!window.speechSynthesis)return;var vs=speechSynthesis.getVoices()||[];var fr=vs.filter(function(v){return /^fr/i.test(v.lang);});if(!fr.length)fr=vs;var want=g(K.vname,"");
+    /* un même timbre est souvent proposé deux fois (hors ligne / en ligne) : on n'en garde qu'une, la meilleure */
+    var G={},order=[];fr.forEach(function(v){var k=(v.name.replace(/[-_ (]*(local|network|compact|enhanced|premium|hors ligne|en ligne)[)]*$/i,"")+"|"+v.lang.replace("_","-")).toLowerCase();var net=/network|enhanced|premium/i.test(v.name)||v.localService===false;
+      if(!G[k]){G[k]={v:v,net:net};order.push(k);}else if(net&&!G[k].net){G[k]={v:v,net:net};}});
+    sel.innerHTML="";var o=document.createElement("option");o.value="";o.textContent="Automatique";sel.appendChild(o);
+    order.forEach(function(k,i){var e=G[k],v=e.v,op=document.createElement("option");op.value=v.name;op.textContent=(i+1)+". "+v.name+" ("+v.lang+")"+(e.net?" · qualité":"");sel.appendChild(op);});
+    /* si le choix mémorisé est l'autre variante du même timbre, on le garde sélectionné */
+    sel.value=want;if(sel.value!==want){var k0=(want.replace(/[-_ (]*(local|network|compact|enhanced|premium|hors ligne|en ligne)[)]*$/i,"")).toLowerCase();var hit=order.find(function(k){return k.split("|")[0]===k0;});sel.value=hit?G[hit].v.name:"";}
+    var note=$("sk-vnote");if(!note){note=document.createElement("div");note.id="sk-vnote";note.style.cssText="font-size:12px;opacity:.75;margin:4px 0 10px;line-height:1.4";sel.parentNode.insertBefore(note,sel.nextSibling);}
+    note.textContent=order.length>1?"":"Ton téléphone ne propose qu'une voix française. Pour en ajouter : Paramètres Android → Synthèse vocale → Google → Installer les données vocales.";}
   if(window.speechSynthesis){pickVoice();fillVoices();speechSynthesis.onvoiceschanged=function(){pickVoice();fillVoices();};}
   if($("sk-vpick"))$("sk-vpick").onchange=function(e){s(K.vname,e.target.value||null);pickVoice();speak("Constantes stables. Je suis là, Exo.");};
   function setMode(m,label){root.classList.remove("listening","thinking","speaking");if(m)root.classList.add(m);STATE.textContent=label||"En veille";}
