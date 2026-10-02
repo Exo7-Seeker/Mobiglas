@@ -1107,8 +1107,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
         <label class="chk"><input type="checkbox" id="sk-sound"> Sons d'interface</label>
         <label class="chk"><input type="checkbox" id="sk-vibe"> Vibrations</label>
       </div>
-      <div class="row" id="sk-eng-row"><label for="sk-eng">Moteur de voix</label><select id="sk-eng"><option value="phone">Voix du téléphone</option><option value="seeker">Voix Seeker (IA · ~400 Mo la 1re fois)</option></select><div id="sk-seeker-box" style="display:none"><label for="sk-pvoice">Voix de Seeker</label><select id="sk-pvoice"></select><label for="sk-pfx">Filtre de voix</label><select id="sk-pfx"></select><div class="btns"><button type="button" id="sk-ptest2">Tester cette voix</button></div><div id="sk-pstat" style="font-size:12px;opacity:.8;margin-top:6px;line-height:1.4"></div></div></div>
-      <div class="row"><label for="sk-prof">Profil de voix</label><select id="sk-prof"><option value="">Personnalisé</option><option value="0.55|1">Seeker (par défaut)</option><option value="0.35|0.9">Grave et posé</option><option value="0.3|0.8">Très grave, lent (IA froide)</option><option value="1|1">Neutre</option><option value="1.3|1.1">Aiguë et vive</option></select><label for="sk-vpick">Voix de Seeker</label><select id="sk-vpick"><option value="">Automatique</option></select><label for="sk-pitch">Voix : grave ↔ aiguë <b id="sk-pv" class="pv"></b></label><input id="sk-pitch" type="range" min="0.3" max="1.4" step="0.05"><label for="sk-rate">Voix : lente ↔ rapide <b id="sk-rv" class="pv"></b></label><input id="sk-rate" type="range" min="0.7" max="1.3" step="0.05"></div>
+      <div class="row" id="sk-eng-row"><label for="sk-eng">Moteur de voix</label><select id="sk-eng"><option value="phone">Voix du téléphone</option><option value="seeker">Voix Seeker (IA · ~400 Mo la 1re fois)</option></select><div id="sk-seeker-box" style="display:none"><label for="sk-pvoice">Voix de Seeker</label><select id="sk-pvoice"></select><label for="sk-pfx">Filtre de voix</label><select id="sk-pfx"></select><label for="sk-spitch">Voix : grave ↔ aiguë <b id="sk-spv" class="pv"></b></label><input id="sk-spitch" type="range" min="0.75" max="1.25" step="0.01"><label for="sk-srate">Voix : lente ↔ rapide <b id="sk-srv" class="pv"></b></label><input id="sk-srate" type="range" min="0.7" max="1.3" step="0.05"><label for="sk-psteps">Vitesse / qualité de la voix</label><select id="sk-psteps"><option value="2">Très rapide (qualité réduite)</option><option value="3">Rapide</option><option value="5">Qualité maximale (plus lent)</option></select><div class="btns"><button type="button" id="sk-ptest2">Tester cette voix</button></div><div id="sk-pstat" style="font-size:12px;opacity:.8;margin-top:6px;line-height:1.4"></div></div></div>
       <div class="row" id="sk-perso"><label for="sk-pprof">Personnalité de Seeker</label><select id="sk-pprof"></select><div id="sk-traits"></div><div class="btns"><button type="button" id="sk-ptest">Tester : « Présente-toi »</button><button type="button" id="sk-preset">Réinitialiser</button></div></div>
       <div class="row btns"><button type="button" id="sk-test">Tester la voix</button><button type="button" id="sk-clear">Effacer la conversation</button><button type="button" id="sk-export">Exporter mes changements</button></div>
     </details>
@@ -2878,6 +2877,8 @@ var FILES=["onnx/duration_predictor.onnx","onnx/text_encoder.onnx","onnx/vector_
 var SIZES={"onnx/duration_predictor.onnx":3.7,"onnx/text_encoder.onnx":36.4,"onnx/vector_estimator.onnx":257,"onnx/vocoder.onnx":101,"onnx/unicode_indexer.json":.3};
 var VOICES={};["M3","M1","M2","M4","M5"].forEach(function(k){VOICES[k]={n:"Seeker "+k+(k==="M3"?" (par défaut)":"")+" · homme"};});["F1","F2","F3","F4","F5"].forEach(function(k){VOICES[k]={n:"Voix "+k+" · femme"};});
 var FXS=[["raw","Aucun (voix naturelle)"],["grave","Grave"],["robot","Robot"],["radio","Radio cockpit"],["echo","Ondulant (intonation)"],["ia","IA froide"]];
+function stage(t){try{if(window.__skStage)window.__skStage(t);}catch(_){}}
+var steps=3,stats={gen:0,dur:0},pitchF=1,rateF=1;
 var ort=null,S=null,IDX=null,loading=null,styles={},chain=Promise.resolve(),ctx=null,gen=0,src=null,stops=[],playing=false,pend=0;
 function C(){if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();return ctx;}
 async function getFile(path,prog){
@@ -2896,15 +2897,18 @@ function ensure(key,onProg){
   if(S)return style(key).then(function(){});
   if(!loading){
     loading=(async function(){
-      ort=await import(ORT+"ort.wasm.min.mjs");ort.env.wasm.wasmPaths=ORT;ort.env.wasm.numThreads=1;
+      stage("Chargement du moteur audio…");ort=await import(ORT+"ort.wasm.min.mjs");ort.env.wasm.wasmPaths=ORT;ort.env.wasm.numThreads=1;ort.env.wasm.proxy=true;
       var total=0;Object.keys(SIZES).forEach(function(k){total+=SIZES[k];});var done={},bufs={};
       for(var i=0;i<FILES.length;i++){var f=FILES[i];
         bufs[f]=await getFile(f,function(n){done[f]=n;var sum=0;Object.keys(done).forEach(function(k){sum+=done[k];});sum/=1048576;if(window.__skProg)window.__skProg(Math.min(100,Math.round(100*sum/total)));});}
-      IDX=JSON.parse(new TextDecoder().decode(bufs["onnx/unicode_indexer.json"]));
+      stage("Lecture des fichiers de la voix…");IDX=JSON.parse(new TextDecoder().decode(bufs["onnx/unicode_indexer.json"]));
       var s={};
       var M=[["dp","onnx/duration_predictor.onnx"],["te","onnx/text_encoder.onnx"],["ve","onnx/vector_estimator.onnx"],["vo","onnx/vocoder.onnx"]];
-      for(var j=0;j<M.length;j++){s[M[j][0]]=await ort.InferenceSession.create(new Uint8Array(bufs[M[j][1]]),{executionProviders:["wasm"],graphOptimizationLevel:"all"});bufs[M[j][1]]=null;}
-      S=s;
+      var mk=function(j){return ort.InferenceSession.create(new Uint8Array(bufs[M[j][1]].slice(0)),{executionProviders:["wasm"],graphOptimizationLevel:"all"});};
+      for(var j=0;j<M.length;j++){stage("Chargement du moteur de voix "+(j+1)+"/4 (peut prendre 30 s la 1re fois)…");
+        try{s[M[j][0]]=await mk(j);}catch(e){if(ort.env.wasm.proxy){ort.env.wasm.proxy=false;s[M[j][0]]=await mk(j);}else throw e;}
+        bufs[M[j][1]]=null;}
+      S=s;stage("Moteur de voix prêt ✓");
     })();
     loading.catch(function(){loading=null;S=null;});
   }
@@ -2925,24 +2929,26 @@ function randn(){var u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();r
 async function synthRaw(text,voice){
   var st=await style(voice),ids=tokens(prepText(text));if(!ids.length)throw new Error("texte vide");
   var T=ids.length,text_ids=new ort.Tensor("int64",BigInt64Array.from(ids.map(BigInt)),[1,T]),text_mask=new ort.Tensor("float32",new Float32Array(T).fill(1),[1,1,T]);
-  var dr=await S.dp.run({text_ids:text_ids,style_dp:st.dp,text_mask:text_mask});var dur=dr[S.dp.outputNames[0]].data[0]/1.05;
+  var dr=await S.dp.run({text_ids:text_ids,style_dp:st.dp,text_mask:text_mask});var dur=dr[S.dp.outputNames[0]].data[0]/(1.05*rateF/pitchF);
   var te=await S.te.run({text_ids:text_ids,style_ttl:st.ttl,text_mask:text_mask});var text_emb=te[S.te.outputNames[0]];
   var SR=44100,CH=512*6,LD=24*6,wavLen=Math.ceil(dur*SR),LL=Math.max(1,Math.ceil(wavLen/CH));
   var lat=new Float32Array(LD*LL);for(var i=0;i<lat.length;i++)lat[i]=randn();
-  var latent=new ort.Tensor("float32",lat,[1,LD,LL]),latent_mask=new ort.Tensor("float32",new Float32Array(LL).fill(1),[1,1,LL]),STEPS=5;
+  var latent=new ort.Tensor("float32",lat,[1,LD,LL]),latent_mask=new ort.Tensor("float32",new Float32Array(LL).fill(1),[1,1,LL]),STEPS=steps;
   for(var k=0;k<STEPS;k++){var r=await S.ve.run({noisy_latent:latent,text_emb:text_emb,style_ttl:st.ttl,latent_mask:latent_mask,text_mask:text_mask,current_step:new ort.Tensor("float32",Float32Array.of(k),[1]),total_step:new ort.Tensor("float32",Float32Array.of(STEPS),[1])});latent=r[S.ve.outputNames[0]];}
   var vr=await S.vo.run({latent:latent}),wav=vr[S.vo.outputNames[0]].data,n=Math.min(wav.length,wavLen),out=new Float32Array(n);out.set(wav.subarray(0,n));
   var b=C().createBuffer(1,n,SR);b.getChannelData(0).set(out);return b;
 }
-function synth(text,voice){var run=async function(){await ensure(voice);return await withTimeout(synthRaw(text,voice),120000,"Synthèse trop longue");};var p=chain.then(run,run);chain=p.catch(function(){});return p;}
+function synth(text,voice){var run=async function(){await ensure(voice);var t0=performance.now();var b=await withTimeout(synthRaw(text,voice),120000,"Synthèse trop longue");stats.gen=(performance.now()-t0)/1000;stats.dur=b.duration;return b;};var p=chain.then(run,run);chain=p.catch(function(){});return p;}
 function split(t){
   var parts=t.replace(/\s+/g," ").trim().split(/(?<=[.!?…:;])\s+/),out=[],cur="";
   parts.forEach(function(s){if((cur+" "+s).length>170&&cur){out.push(cur);cur=s;}else cur=cur?cur+" "+s:s;});
-  if(cur)out.push(cur);return out;
+  if(cur)out.push(cur);
+  if(out.length&&out[0].length>110){var f=out[0],m=Math.floor(f.length/2),best=-1;for(var q=0;q<f.length;q++){if(/[,;:]/.test(f[q])&&q>35&&(best<0||Math.abs(q-m)<Math.abs(best-m)))best=q;}if(best>0){out.splice(0,1,f.slice(0,best+1).trim(),f.slice(best+1).trim());}}
+  return out;
 }
 function stop(){gen++;try{src&&src.stop();}catch(_){}src=null;stops.forEach(function(f){try{f();}catch(_){}});stops=[];playing=false;}
-function playBuf(buf,fx){return new Promise(function(res){var c=C(),s=c.createBufferSource();s.buffer=buf;
-  stops=fxBuild(c,s,fx||"raw",c.destination,buf.duration);s.onended=function(){stops.forEach(function(f){try{f();}catch(_){}});stops=[];setTimeout(res,fx==="radio"?120:0);};
+function playBuf(buf,fx){return new Promise(function(res){var c=C(),s=c.createBufferSource();s.buffer=buf;s.playbackRate.value=pitchF;
+  stops=fxBuild(c,s,fx||"raw",c.destination,buf.duration/pitchF);s.onended=function(){stops.forEach(function(f){try{f();}catch(_){}});stops=[];setTimeout(res,fx==="radio"?120:0);};
   src=s;s.start(c.currentTime+.02);});}
 async function speak(text,key,fx,cb){
   stop();var my=gen;pend++;
@@ -2959,7 +2965,7 @@ async function speak(text,key,fx,cb){
   }finally{pend--;}
 }
 function cachedReady(){return (window.caches?caches.open("supertonic3").then(function(c){return c.keys();}).then(function(k){return k.length>=FILES.length;}):Promise.resolve(false)).catch(function(){return false;});}
-window.__SKV={voices:VOICES,fxs:FXS,ensure:ensure,speak:speak,stop:stop,cachedReady:cachedReady,isPlaying:function(){return playing||pend>0;},unlock:function(){try{C().resume();}catch(_){}}};
+window.__SKV={voices:VOICES,fxs:FXS,ensure:ensure,speak:speak,stop:stop,cachedReady:cachedReady,isPlaying:function(){return playing||pend>0;},isReady:function(){return !!S;},setSteps:function(n){steps=n;},setPR:function(p,r){pitchF=p;rateF=r;},stats:stats,unlock:function(){try{C().resume();}catch(_){}}};
 })();
 </script>
 <script>/* Seeker · IA de bord intégrée */
@@ -2967,7 +2973,7 @@ window.__SKV={voices:VOICES,fxs:FXS,ensure:ensure,speak:speak,stop:stop,cachedRe
   var $=function(id){return document.getElementById(id);};
   var root=$("sk");if(!root)return;
   var LOG=$("sk-log"),STATE=$("sk-state"),MIC=$("sk-mic"),HINT=$("sk-hint");
-  var K={key:"mg-api-key",model:"mg-model",hist:"mg-seeker-hist",pitch:"mg-pitch",rate:"mg-rate",vname:"mg-voice-name",perso:"mg-perso",eng:"mg-eng",pvoice:"mg-pvoice",pfx:"mg-pfx"};
+  var K={key:"mg-api-key",model:"mg-model",hist:"mg-seeker-hist",pitch:"mg-pitch",rate:"mg-rate",vname:"mg-voice-name",perso:"mg-perso",eng:"mg-eng",pvoice:"mg-pvoice",pfx:"mg-pfx",psteps:"mg-psteps",spitch:"mg-spitch",srate:"mg-srate"};
   function g(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}}
   function s(k,v){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
   var norm=function(t){return String(t||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();};
@@ -2979,18 +2985,12 @@ window.__SKV={voices:VOICES,fxs:FXS,ensure:ensure,speak:speak,stop:stop,cachedRe
   keyIn.value=g(K.key,"")?"••••••••••••":"";
   modelSel.value=g(K.model,"claude-haiku-4-5-20251001");
   $("sk-voice").checked=mgSettings.voice;$("sk-sound").checked=mgSettings.sound;$("sk-vibe").checked=mgSettings.vibe;
-  $("sk-pitch").value=g(K.pitch,"0.55");$("sk-rate").value=g(K.rate,"1");
   $("sk-key-save").onclick=function(){var v=keyIn.value.trim();if(v&&v.indexOf("•")<0){s(K.key,v);keyIn.value="••••••••••••";say("Clé enregistrée. Je suis en ligne.",true);}};
   $("sk-key-del").onclick=function(){s(K.key,null);keyIn.value="";STATE.textContent="Clé effacée";};
   modelSel.onchange=function(){s(K.model,modelSel.value);};
   $("sk-voice").onchange=function(e){mgSave("voice",e.target.checked);};
   $("sk-sound").onchange=function(e){mgSave("sound",e.target.checked);};
   $("sk-vibe").onchange=function(e){mgSave("vibe",e.target.checked);};
-  function pct(){var p=parseFloat($("sk-pitch").value),r=parseFloat($("sk-rate").value);$("sk-pv").textContent=Math.round((p-0.3)/1.1*100)+" %";$("sk-rv").textContent=Math.round((r-0.7)/0.6*100)+" %";}
-  function syncProf(){pct();var pr=$("sk-prof");if(!pr)return;var k=parseFloat($("sk-pitch").value)+"|"+parseFloat($("sk-rate").value);pr.value="";[].slice.call(pr.options).forEach(function(o){if(o.value&&o.value===k)pr.value=o.value;});}
-  pct();if($("sk-prof")){syncProf();$("sk-prof").onchange=function(e){var v=e.target.value;if(!v)return;var a=v.split("|");$("sk-pitch").value=a[0];$("sk-rate").value=a[1];s(K.pitch,a[0]);s(K.rate,a[1]);pct();speak("Constantes stables. Je suis là, Exo.");};}
-  $("sk-pitch").oninput=function(e){s(K.pitch,e.target.value);syncProf();};
-  $("sk-rate").oninput=function(e){s(K.rate,e.target.value);syncProf();};
   $("sk-test").onclick=function(){speak("Constantes stables. Je suis là, Exo.");};
   $("sk-clear").onclick=function(){hist=[];s(K.hist,null);LOG.textContent="";};
   $("sk-export").onclick=function(){var blob=new Blob([JSON.stringify(window.__mgOverlay?__mgOverlay():{},null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mobiglas-changements.json";document.body.appendChild(a);a.click();a.remove();};
@@ -3015,16 +3015,24 @@ window.__SKV={voices:VOICES,fxs:FXS,ensure:ensure,speak:speak,stop:stop,cachedRe
     var E=$("sk-eng"),V=$("sk-pvoice"),X=$("sk-pfx"),B=$("sk-seeker-box"),ST=$("sk-pstat");
     Object.keys(SKV.voices).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=SKV.voices[k].n;V.appendChild(o);});
     SKV.fxs.forEach(function(f){var o=document.createElement("option");o.value=f[0];o.textContent=f[1];X.appendChild(o);});
+    SKV.setSteps(parseInt(g(K.psteps,"3"),10)||3);if($("sk-psteps")){$("sk-psteps").value=g(K.psteps,"3");$("sk-psteps").onchange=function(e){s(K.psteps,e.target.value);SKV.setSteps(parseInt(e.target.value,10));};}
     E.value=g(K.eng,"phone");V.value=(__SKV.voices[g(K.pvoice,"M3")]?g(K.pvoice,"M3"):"M3");X.value=g(K.pfx,"raw");
-    function show(){B.style.display=E.value==="seeker"?"block":"none";}show();
+    window.__skStage=function(t){ST.textContent=t;};
+    var SP=$("sk-spitch"),SRt=$("sk-srate");
+    function pr(){var p=parseFloat(SP.value),r=parseFloat(SRt.value);$("sk-spv").textContent=Math.round((p-0.75)/0.5*100)+" %";$("sk-srv").textContent=Math.round((r-0.7)/0.6*100)+" %";SKV.setPR(p,r);}
+    SP.value=g(K.spitch,"1");SRt.value=g(K.srate,"1");pr();
+    SP.oninput=SRt.oninput=pr;
+    SP.onchange=function(){s(K.spitch,SP.value);pr();SKV.unlock();stopSpeech();prepare(true);};
+    SRt.onchange=function(){s(K.srate,SRt.value);pr();SKV.unlock();stopSpeech();prepare(true);};
+    function show(){var sk=E.value==="seeker";B.style.display=sk?"block":"none";}show();
     var TEST="Constantes stables. Je suis là, Exo. Le point de saut est dégagé.";
     function prepare(thenTest){ST.textContent="Préparation de la voix…";
-      return SKV.ensure(V.value,function(p){ST.textContent=p<100?"Téléchargement de la voix : "+p+" % (une seule fois)":"Chargement de la voix…";}).then(function(){ST.textContent="Voix prête ✓";if(thenTest)return SKV.speak(TEST,V.value,X.value,{});}).catch(function(e){
+      return SKV.ensure(V.value,function(p){ST.textContent=p<100?"Téléchargement de la voix : "+p+" % (une seule fois)":"Chargement de la voix…";}).then(function(){ST.textContent="Voix prête ✓";if(thenTest)return SKV.speak(TEST,V.value,X.value,{}).then(function(){ST.textContent="Voix prête ✓ · dernière phrase : générée en "+SKV.stats.gen.toFixed(1)+" s pour "+SKV.stats.dur.toFixed(1)+" s de voix";});}).catch(function(e){
         ST.textContent="Impossible de charger la voix Seeker ("+(e&&e.message||e)+"). Seeker garde la voix du téléphone.";E.value="phone";s(K.eng,"phone");show();});}
     E.onchange=function(){s(K.eng,E.value);show();if(E.value==="seeker"){SKV.unlock();prepare(true);}};
     V.onchange=function(){s(K.pvoice,V.value);SKV.unlock();prepare(true);};
     X.onchange=function(){s(K.pfx,X.value);SKV.unlock();SKV.speak(TEST,V.value,X.value,{}).catch(function(e){ST.textContent="Erreur : "+(e&&e.message||e);});};
-    $("sk-ptest2").onclick=function(){SKV.unlock();stopSpeech();SKV.speak(TEST,V.value,X.value,{}).catch(function(e){ST.textContent="Erreur : "+(e&&e.message||e);});};
+    $("sk-ptest2").onclick=function(){SKV.unlock();stopSpeech();ST.textContent="Démarrage…";prepare(true);};
     document.addEventListener("pointerdown",SKV.unlock,{once:true});
     /* voix déjà téléchargée et aucun choix mémorisé : Seeker prend sa voix tout seul */
     SKV.cachedReady().then(function(ok){if(!ok)return;if(!g(K.eng,null)){s(K.eng,"seeker");E.value="seeker";show();}if(E.value==="seeker"){ST.textContent="Voix prête.";setTimeout(function(){SKV.ensure(V.value).catch(function(){});},4000);}});
@@ -3038,7 +3046,7 @@ window.__SKV={voices:VOICES,fxs:FXS,ensure:ensure,speak:speak,stop:stop,cachedRe
   function speak(t){if(!mgSettings.voice||!t){setMode(null);return;}
     if(g(K.eng,"phone")==="seeker"&&window.__SKV){
       if(window.speechSynthesis)speechSynthesis.cancel();
-      var clean=t.replace(/[*_#`]/g,"");
+      var clean=t.replace(/[*_#`]/g,"");if(!__SKV.isReady())setMode("thinking","Préparation de la voix…");
       __SKV.speak(clean,(__SKV.voices[g(K.pvoice,"M3")]?g(K.pvoice,"M3"):"M3"),g(K.pfx,"raw"),{start:function(){setMode("speaking","Transmission");if(window.__hfPause)__hfPause();},end:function(){setMode(null);if(window.__hfResume)__hfResume();}})
         .catch(function(e){setMode(null);var st=$("sk-pstat");if(st)st.textContent="Voix Seeker indisponible ("+(e&&e.message||e)+") : voix du téléphone utilisée.";phoneSpeak(t);});
       return;}
