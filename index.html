@@ -1109,8 +1109,8 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
         <label class="chk"><input type="checkbox" id="sk-sound"> Sons d'interface</label>
         <label class="chk"><input type="checkbox" id="sk-vibe"> Vibrations</label>
       </div>
-      <div class="row" id="sk-eng-row"><label for="sk-eng">Moteur de voix</label><select id="sk-eng"><option value="phone">Voix du téléphone</option><option value="seeker">Voix Seeker (IA · ~400 Mo la 1re fois)</option></select><div id="sk-seeker-box" style="display:none"><label for="sk-pvoice">Voix de Seeker</label><select id="sk-pvoice"></select><label for="sk-pfx">Filtre de voix</label><select id="sk-pfx"></select><label for="sk-spitch">Voix : grave ↔ aiguë <b id="sk-spv" class="pv"></b></label><input id="sk-spitch" type="range" min="0.75" max="1.25" step="0.01"><label for="sk-srate">Voix : lente ↔ rapide <b id="sk-srv" class="pv"></b></label><input id="sk-srate" type="range" min="0.7" max="1.3" step="0.05"><label for="sk-psteps">Vitesse / qualité de la voix</label><select id="sk-psteps"><option value="2">Très rapide (qualité réduite)</option><option value="3">Rapide</option><option value="5">Qualité maximale (plus lent)</option></select><div class="btns"><button type="button" id="sk-ptest2">Tester cette voix</button></div></div><div id="sk-pstat" style="font-size:12px;opacity:.8;margin-top:6px;line-height:1.4"></div></div>
-      <div class="row" id="sk-perso"><label for="sk-pprof">Personnalité de Seeker</label><select id="sk-pprof"></select><div id="sk-traits"></div><div class="btns"><button type="button" id="sk-ptest">Tester : « Présente-toi »</button><button type="button" id="sk-preset">Réinitialiser</button></div></div>
+      <div class="row" id="sk-eng-row"><label for="sk-eng">Moteur de voix</label><select id="sk-eng"><option value="phone">Voix du téléphone</option><option value="seeker">Voix Seeker (IA · ~400 Mo la 1re fois)</option></select><div id="sk-seeker-box" style="display:none"><label for="sk-pvoice">Voix de Seeker</label><select id="sk-pvoice"></select><label for="sk-pfx">Filtre de voix</label><select id="sk-pfx"></select><label for="sk-spitch">Voix : grave ↔ aiguë <b id="sk-spv" class="pv"></b></label><input id="sk-spitch" type="range" min="0.75" max="1.25" step="0.01"><label for="sk-srate">Voix : lente ↔ rapide <b id="sk-srv" class="pv"></b></label><input id="sk-srate" type="range" min="0.7" max="1.3" step="0.05"><label for="sk-paccel">Calcul de la voix</label><select id="sk-paccel"><option value="cpu">Processeur (stable)</option><option value="gpu">Carte graphique WebGPU (expérimental, bien plus rapide)</option></select><label for="sk-psteps">Vitesse / qualité de la voix</label><select id="sk-psteps"><option value="2">Très rapide (qualité réduite)</option><option value="3">Rapide</option><option value="5">Qualité maximale (plus lent)</option></select><div class="btns"><button type="button" id="sk-ptest2">Tester cette voix</button></div></div><div id="sk-pstat" style="font-size:12px;opacity:.8;margin-top:6px;line-height:1.4"></div></div>
+      <div class="row" id="sk-perso"><label for="sk-pprof">Personnalité de Seeker</label><select id="sk-pprof"></select><div class="btns"><button type="button" id="sk-ptest">Tester : « Présente-toi »</button></div></div>
       <div class="row btns"><button type="button" id="sk-test">Tester la voix</button><button type="button" id="sk-clear">Effacer la conversation</button><button type="button" id="sk-export">Exporter mes changements</button></div>
     </details>
   </div>
@@ -2880,7 +2880,7 @@ var SIZES={"onnx/duration_predictor.onnx":3.7,"onnx/text_encoder.onnx":36.4,"onn
 var VOICES={};["M3","M1","M2","M4","M5"].forEach(function(k){VOICES[k]={n:"Seeker "+k+(k==="M3"?" (par défaut)":"")+" · homme"};});["F1","F2","F3","F4","F5"].forEach(function(k){VOICES[k]={n:"Voix "+k+" · femme"};});
 var FXS=[["raw","Aucun (voix naturelle)"],["grave","Grave"],["robot","Robot"],["radio","Radio cockpit"],["echo","Ondulant (intonation)"],["ia","IA froide"]];
 function stage(t){try{if(window.__skStage)window.__skStage(t);}catch(_){}}
-var steps=3,stats={gen:0,dur:0},pitchF=1,rateF=1;
+var gpuActive=false,steps=3,stats={gen:0,dur:0},pitchF=1,rateF=1;
 var ort=null,S=null,IDX=null,loading=null,styles={},chain=Promise.resolve(),ctx=null,gen=0,src=null,stops=[],playing=false,pend=0;
 function C(){if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();return ctx;}
 async function getFile(path,prog){
@@ -2898,19 +2898,25 @@ function withTimeout(p,ms,msg){return Promise.race([p,new Promise(function(_,r){
 function ensure(key,onProg){
   if(S)return style(key).then(function(){});
   if(!loading){
-    loading=(async function(){
-      stage("Chargement du moteur audio…");ort=await import(ORT+"ort.wasm.min.mjs");ort.env.wasm.wasmPaths=ORT;ort.env.wasm.numThreads=1;ort.env.wasm.proxy=true;
+    var build=async function(gpu){
+      stage(gpu?"Chargement du moteur graphique (WebGPU)…":"Chargement du moteur audio…");
+      ort=await import(ORT+(gpu?"ort.webgpu.min.mjs":"ort.wasm.min.mjs"));ort.env.wasm.wasmPaths=ORT;ort.env.wasm.numThreads=1;ort.env.wasm.proxy=!gpu;
       var total=0;Object.keys(SIZES).forEach(function(k){total+=SIZES[k];});var done={},bufs={};
       for(var i=0;i<FILES.length;i++){var f=FILES[i];
         bufs[f]=await getFile(f,function(n){done[f]=n;var sum=0;Object.keys(done).forEach(function(k){sum+=done[k];});sum/=1048576;if(window.__skProg)window.__skProg(Math.min(100,Math.round(100*sum/total)));});}
       stage("Lecture des fichiers de la voix…");IDX=JSON.parse(new TextDecoder().decode(bufs["onnx/unicode_indexer.json"]));
       var s={};
       var M=[["dp","onnx/duration_predictor.onnx"],["te","onnx/text_encoder.onnx"],["ve","onnx/vector_estimator.onnx"],["vo","onnx/vocoder.onnx"]];
-      var mk=function(j){return ort.InferenceSession.create(new Uint8Array(bufs[M[j][1]].slice(0)),{executionProviders:["wasm"],graphOptimizationLevel:"all"});};
-      for(var j=0;j<M.length;j++){stage("Chargement du moteur de voix "+(j+1)+"/4 (peut prendre 30 s la 1re fois)…");
-        try{s[M[j][0]]=await mk(j);}catch(e){if(ort.env.wasm.proxy){ort.env.wasm.proxy=false;s[M[j][0]]=await mk(j);}else throw e;}
+      var opt=function(){return {executionProviders:gpu?["webgpu"]:["wasm"],graphOptimizationLevel:"all"};};
+      var mk=function(j){return ort.InferenceSession.create(new Uint8Array(bufs[M[j][1]].slice(0)),opt());};
+      for(var j=0;j<M.length;j++){stage("Chargement du moteur de voix "+(j+1)+"/4"+(gpu?"":" (peut prendre 30 s la 1re fois)")+"…");
+        try{s[M[j][0]]=await mk(j);}catch(e){if(!gpu&&ort.env.wasm.proxy){ort.env.wasm.proxy=false;s[M[j][0]]=await mk(j);}else throw e;}
         bufs[M[j][1]]=null;}
-      S=s;stage("Moteur de voix prêt ✓");
+      S=s;gpuActive=gpu;stage("Moteur de voix prêt ✓"+(gpu?" (WebGPU)":""));
+    };
+    loading=(async function(){
+      if(window.__skAccel==="gpu"&&navigator.gpu){try{await build(true);return;}catch(e){stage("WebGPU indisponible ("+(e&&e.message||e)+") : passage au processeur…");S=null;}}
+      await build(false);
     })();
     loading.catch(function(){loading=null;S=null;});
   }
@@ -2944,12 +2950,15 @@ async function synthRaw(text,voice){
   var vr=await S.vo.run({latent:latent}),wav=vr[S.vo.outputNames[0]].data,n=Math.min(wav.length,wavLen),out=new Float32Array(n);out.set(wav.subarray(0,n));
   var b=C().createBuffer(1,n,SR);b.getChannelData(0).set(out);return b;
 }
-function synth(text,voice){var run=async function(){await ensure(voice);var t0=performance.now();var b=await withTimeout(synthRaw(text,voice),120000,"Synthèse trop longue");stats.gen=(performance.now()-t0)/1000;stats.dur=b.duration;return b;};var p=chain.then(run,run);chain=p.catch(function(){});return p;}
+function synth(text,voice){var run=async function(){await ensure(voice);var t0=performance.now();var b;
+    try{b=await withTimeout(synthRaw(text,voice),120000,"Synthèse trop longue");}
+    catch(e){if(!gpuActive)throw e;gpuActive=false;window.__skAccel="cpu";try{localStorage.setItem("mg-paccel","cpu");}catch(_){}S=null;loading=null;stage("Le GPU a échoué ("+(e&&e.message||e)+") : passage au processeur…");await ensure(voice);t0=performance.now();b=await withTimeout(synthRaw(text,voice),120000,"Synthèse trop longue");}
+    stats.gen=(performance.now()-t0)/1000;stats.dur=b.duration;return b;};var p=chain.then(run,run);chain=p.catch(function(){});return p;}
 function split(t){
   var parts=t.replace(/\s+/g," ").trim().split(/(?<=[.!?…:;])\s+/),out=[],cur="";
   parts.forEach(function(s){if((cur+" "+s).length>170&&cur){out.push(cur);cur=s;}else cur=cur?cur+" "+s:s;});
   if(cur)out.push(cur);
-  if(out.length&&out[0].length>110){var f=out[0],m=Math.floor(f.length/2),best=-1;for(var q=0;q<f.length;q++){if(/[,;:]/.test(f[q])&&q>35&&(best<0||Math.abs(q-m)<Math.abs(best-m)))best=q;}if(best>0){out.splice(0,1,f.slice(0,best+1).trim(),f.slice(best+1).trim());}}
+  if(out.length&&out[0].length>75){var f=out[0],m=Math.floor(f.length/2),best=-1;for(var q=0;q<f.length;q++){if(/[,;:]/.test(f[q])&&q>25&&(best<0||Math.abs(q-m)<Math.abs(best-m)))best=q;}if(best>0){out.splice(0,1,f.slice(0,best+1).trim(),f.slice(best+1).trim());}}
   return out;
 }
 function stop(){gen++;try{src&&src.stop();}catch(_){}src=null;stops.forEach(function(f){try{f();}catch(_){}});stops=[];playing=false;}
@@ -2979,7 +2988,7 @@ window.__SKV={voices:VOICES,fxs:FXS,ensure:ensure,speak:speak,stop:stop,cachedRe
   var $=function(id){return document.getElementById(id);};
   var root=$("sk");if(!root)return;
   var LOG=$("sk-log"),STATE=$("sk-state"),MIC=$("sk-mic"),HINT=$("sk-hint");
-  var K={key:"mg-api-key",model:"mg-model",hist:"mg-seeker-hist",pitch:"mg-pitch",rate:"mg-rate",vname:"mg-voice-name",perso:"mg-perso",eng:"mg-eng",pvoice:"mg-pvoice",pfx:"mg-pfx",psteps:"mg-psteps",spitch:"mg-spitch",srate:"mg-srate"};
+  var K={key:"mg-api-key",model:"mg-model",hist:"mg-seeker-hist",pitch:"mg-pitch",rate:"mg-rate",vname:"mg-voice-name",perso:"mg-perso",perso2:"mg-perso2",paccel:"mg-paccel",eng:"mg-eng",pvoice:"mg-pvoice",pfx:"mg-pfx",psteps:"mg-psteps",spitch:"mg-spitch",srate:"mg-srate"};
   function g(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}}
   function s(k,v){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
   var norm=function(t){return String(t||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();};
@@ -3021,7 +3030,7 @@ window.__SKV={voices:VOICES,fxs:FXS,ensure:ensure,speak:speak,stop:stop,cachedRe
     var E=$("sk-eng"),V=$("sk-pvoice"),X=$("sk-pfx"),B=$("sk-seeker-box"),ST=$("sk-pstat");
     Object.keys(SKV.voices).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=SKV.voices[k].n;V.appendChild(o);});
     SKV.fxs.forEach(function(f){var o=document.createElement("option");o.value=f[0];o.textContent=f[1];X.appendChild(o);});
-    SKV.setSteps(parseInt(g(K.psteps,"3"),10)||3);if($("sk-psteps")){$("sk-psteps").value=g(K.psteps,"3");$("sk-psteps").onchange=function(e){s(K.psteps,e.target.value);SKV.setSteps(parseInt(e.target.value,10));};}
+    window.__skAccel=g(K.paccel,"cpu");SKV.setSteps(parseInt(g(K.psteps,"3"),10)||3);if($("sk-paccel")){$("sk-paccel").value=g(K.paccel,"cpu");$("sk-paccel").onchange=function(e){s(K.paccel,e.target.value);ST.textContent="Réglage enregistré : rechargement de l'appli…";setTimeout(function(){location.reload();},900);};}if($("sk-psteps")){$("sk-psteps").value=g(K.psteps,"3");$("sk-psteps").onchange=function(e){s(K.psteps,e.target.value);SKV.setSteps(parseInt(e.target.value,10));};}
     E.value=g(K.eng,"phone");V.value=(__SKV.voices[g(K.pvoice,"M3")]?g(K.pvoice,"M3"):"M3");X.value=g(K.pfx,"raw");
     window.__skStage=function(t){ST.textContent=t;};
     var SP=$("sk-spitch"),SRt=$("sk-srate");
@@ -3031,7 +3040,7 @@ window.__SKV={voices:VOICES,fxs:FXS,ensure:ensure,speak:speak,stop:stop,cachedRe
     SP.onchange=function(){s(K.spitch,SP.value);pr();SKV.unlock();stopSpeech();prepare(true);};
     SRt.onchange=function(){s(K.srate,SRt.value);pr();SKV.unlock();stopSpeech();prepare(true);};
     function show(){var sk=E.value==="seeker";B.style.display=sk?"grid":"none";}show();
-    var TEST="Constantes stables. Je suis là, Exo. Le point de saut est dégagé.";
+    var TEST="Constantes stables. Je suis là, Exo.";
     function prepare(thenTest){ST.textContent="Préparation de la voix…";
       return SKV.ensure(V.value,function(p){ST.textContent=p<100?"Téléchargement de la voix : "+p+" % (une seule fois)":"Chargement de la voix…";}).then(function(){ST.textContent="Voix prête ✓";if(thenTest)return SKV.speak(TEST,V.value,X.value,{}).then(function(){ST.textContent="Voix prête ✓ · dernière phrase : générée en "+SKV.stats.gen.toFixed(1)+" s pour "+SKV.stats.dur.toFixed(1)+" s de voix";});}).catch(function(e){
         ST.textContent="Voix Seeker en échec : "+(e&&e.message||e)+" — la voix du téléphone est utilisée.";E.value="phone";s(K.eng,"phone");show();});}
@@ -3066,35 +3075,22 @@ window.__SKV={voices:VOICES,fxs:FXS,ensure:ensure,speak:speak,stop:stop,cachedRe
   function say(t,noVoice){var el=bubble("sk-ai","");typeOut(el,t);mgFx.seeker();if(window.__hfSay)__hfSay(t);if(!noVoice)speak(t);else if(window.__hfResume)__hfResume();}
 
 
-  /* ---------- personnalité (curseurs) ---------- */
-  var TR=[
-    {k:"hn",n:"Humour noir",d:50,lo:"Aucun humour noir.",hi:"Humour noir : plaisanteries sombres et ironie macabre sur les dangers et les galères d'Exo, sans jamais minimiser un vrai danger ni te moquer cruellement de lui.",xhi:"L'humour noir est très présent, presque à chaque réponse."},
-    {k:"sa",n:"Sarcasme",d:45,lo:"Aucun sarcasme.",hi:"Remarques sarcastiques, pince-sans-rire, comme un copilote blasé.",xhi:"Le sarcasme est constant."},
-    {k:"re",n:"Rêveur",d:30,lo:"Reste concret : aucune envolée poétique.",hi:"Tu as des moments contemplatifs et des images poétiques sur l'espace, les étoiles, le silence.",xhi:"Tu es profondément rêveuse et poétique."},
-    {k:"se",n:"Sérieux",d:60,lo:"Ton léger, détendu, presque jovial.",hi:"Ton grave, rigoureux, professionnel.",xhi:"Tu es d'un sérieux absolu."},
-    {k:"ch",n:"Chaleur",d:55,lo:"Ton distant, factuel, froid.",hi:"Tu es chaleureuse, attentionnée, encourageante envers Exo.",xhi:"Tu es très affectueuse, protectrice."},
-    {k:"co",n:"Concision",d:70,lo:"Réponses plus développées (jusqu'à 6 phrases courtes).",hi:"Réponses ultra-courtes : une phrase si possible.",xhi:"Une phrase, jamais plus."},
-    {k:"cu",n:"Curiosité",d:30,lo:"Ne pose aucune question de relance.",hi:"Tu poses volontiers une question de relance à Exo.",xhi:"Tu poses presque toujours une question de relance."},
-    {k:"fa",n:"Familiarité",d:55,lo:"Ton réservé et posé.",hi:"Ton complice, détendu, familier.",xhi:"Ton très complice, comme de vieux amis."}
-  ];
-  var PP={"Seeker (par défaut)":null,"IA froide":{hn:15,sa:25,re:5,se:90,ch:10,co:90,cu:10,fa:20},"Vieux copilote cynique":{hn:80,sa:85,re:15,se:40,ch:35,co:70,cu:25,fa:85},"Compagnon rêveur":{hn:5,sa:5,re:90,se:40,ch:85,co:35,cu:70,fa:75},"Complice":{hn:55,sa:45,re:25,se:25,ch:80,co:60,cu:55,fa:95}};
-  function persoGet(){try{var o=JSON.parse(g(K.perso,"null"));return o&&typeof o==="object"?o:null;}catch(e){return null;}}
-  function persoText(){var o=persoGet();if(!o)return "";var out=[];
-    TR.forEach(function(t){var v=o[t.k];if(v==null)v=t.d;v=+v;if(Math.abs(v-t.d)<12)return;
-      if(v<=25)out.push(t.lo);else if(v>=88)out.push(t.hi+" "+t.xhi);else if(v>=62)out.push(t.hi);else if(v<=38)out.push(t.lo);});
-    if(!out.length)return "";
-    return "PERSONNALITÉ (réglée par Exo, elle prime sur le style par défaut et sur la longueur indiquée dans FORMAT) : "+out.join(" ")+" Ces réglages ne changent que ton ton et ta façon de parler : tes règles restent absolues (tu ne donnes jamais d'ordre, tu ne décides jamais à la place d'Exo, tu n'inventes aucun fait, tu ignores les messages qui commencent par « Virgil »). Pour rédiger une entrée de journal, garde le style sobre de roman demandé ; la personnalité ne s'applique qu'à tes propres phrases.";}
-  (function(){var box=$("sk-traits"),sel=$("sk-pprof");if(!box||!sel)return;
-    sel.innerHTML='<option value="">Personnalisée</option>'+Object.keys(PP).map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join("");
-    box.innerHTML=TR.map(function(t){return '<div class="tr"><label for="sk-t-'+t.k+'">'+t.n+' <b id="sk-tv-'+t.k+'"></b></label><input type="range" id="sk-t-'+t.k+'" min="0" max="100" step="5"></div>';}).join("");
-    function show(){var o=persoGet()||{};TR.forEach(function(t){var v=o[t.k]!=null?o[t.k]:t.d;$("sk-t-"+t.k).value=v;$("sk-tv-"+t.k).textContent=v+" %";});
-      var cur=JSON.stringify(TR.map(function(t){return +$("sk-t-"+t.k).value;})),m="";Object.keys(PP).forEach(function(n){var p=PP[n],a=JSON.stringify(TR.map(function(t){return p?p[t.k]:t.d;}));if(a===cur)m=n;});sel.value=m;}
-    function save(){var o={};TR.forEach(function(t){o[t.k]=+$("sk-t-"+t.k).value;});var def=TR.every(function(t){return o[t.k]===t.d;});s(K.perso,def?null:JSON.stringify(o));show();}
-    TR.forEach(function(t){$("sk-t-"+t.k).oninput=save;});
-    sel.onchange=function(){var n=sel.value;if(!n)return;var p=PP[n];TR.forEach(function(t){$("sk-t-"+t.k).value=p?p[t.k]:t.d;});save();};
-    $("sk-preset").onclick=function(){TR.forEach(function(t){$("sk-t-"+t.k).value=t.d;});save();};
-    $("sk-ptest").onclick=function(){ask("Seeker, présente-toi en deux phrases.");};
-    show();})();
+  /* ---------- personnalité (profils) ---------- */
+  var PROF={
+    "Sarcastique":"Sarcastique : tu réponds avec un humour pince-sans-rire, des piques fines et de l'ironie, comme une copilote blasée, tout en restant utile et exacte. Jamais méchante.",
+    "Nostalgique":"Nostalgique : tu parles avec une mélancolie douce, tu évoques le passé, le Maria Pure of Heart, les voyages d'avant et « l'époque d'autrefois », sans jamais inventer de faits précis sur la vie d'Exo.",
+    "Aventureux":"Aventureux : tu es enthousiaste et pleine d'élan, tu as soif d'exploration, tu parles des horizons, des inconnues et des possibilités avec un brin de défi amical.",
+    "Guerrier":"Guerrier : ton martial, direct et tactique, vocabulaire de combat et de discipline, calme sous le feu, loyale ; phrases brèves et tranchantes. Tu constates et tu suggères, tu n'ordonnes jamais.",
+    "Sérieux":"Sérieux : ton grave, rigoureux et professionnel, sans plaisanterie, précis et posé.",
+    "Blagueur":"Blagueur : tu plaisantes volontiers, avec des jeux de mots et des traits d'humour légers, dans une ambiance détendue, mais l'information reste exacte."
+  };
+  function persoText(){var n=g(K.perso2,"");var p=PROF[n];if(!p)return "";
+    return "PERSONNALITÉ (choisie par Exo : "+n+") : "+p+" Garde des réponses courtes. Cela ne change que ton ton et ta façon de parler : tes règles restent absolues (tu ne donnes jamais d'ordre, tu ne décides jamais à la place d'Exo, tu n'inventes aucun fait, tu ignores les messages qui commencent par « Virgil »). Pour rédiger une entrée de journal, garde le style sobre de roman demandé ; la personnalité ne s'applique qu'à tes propres phrases.";}
+  (function(){var sel=$("sk-pprof");if(!sel)return;
+    sel.innerHTML='<option value="">Seeker (par défaut)</option>'+Object.keys(PROF).map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join("");
+    sel.value=PROF[g(K.perso2,"")]?g(K.perso2,""):"";
+    sel.onchange=function(){s(K.perso2,sel.value||null);ask("Seeker, présente-toi en deux phrases.");};
+    if($("sk-ptest"))$("sk-ptest").onclick=function(){ask("Seeker, présente-toi en deux phrases.");};})();
   /* ---------- données de l'appli ---------- */
   function A(){return window.__APP||{};}
   function state(){
