@@ -1036,10 +1036,33 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
 .h3d-bar .h3d-st{display:none;max-width:210px;padding:6px 9px;background:rgba(4,22,34,.96);border:1px solid var(--hud);font-size:10.5px;line-height:1.35;color:var(--star)}
 .h3d-bar .h3d-st.on{display:block}
 
-/* Caps : image à droite du bandeau */
-.capitem.has-img{grid-template-columns:minmax(0,1fr) 86px;column-gap:12px;align-items:center}
-.capitem.has-img>.cap-top,.capitem.has-img>p{grid-column:1}
-.capitem.has-img>.cap-img{grid-column:2;grid-row:1 / span 2;width:86px;height:72px;object-fit:cover;border:1px solid var(--line);opacity:.92}
+/* Caps : bandeaux condensés, image sur toute la hauteur à droite */
+#cap{gap:6px!important}
+#cap .capitem{padding:7px 10px!important;gap:2px!important}
+#cap .capitem .cap-top{gap:8px}
+#cap .capitem .cap-title{font-size:15px!important;line-height:1.15!important;letter-spacing:.04em}
+#cap .capitem .cap-status{font-size:9px!important;letter-spacing:.08em;white-space:nowrap}
+#cap .capitem p{font-size:12.5px!important;line-height:1.3!important}
+#cap .capitem.has-img{padding:0!important;grid-template-columns:minmax(0,1fr) 104px;column-gap:0!important;align-items:stretch;overflow:hidden}
+#cap .capitem.has-img>.cap-top{grid-column:1;padding:7px 8px 0 10px}
+#cap .capitem.has-img>p{grid-column:1;padding:0 8px 7px 10px}
+#cap .capitem.has-img>.cap-img{grid-column:2;grid-row:1 / span 2;width:100%;height:100%;min-height:0;object-fit:cover;border:0;border-left:1px solid var(--line);opacity:.95;display:block}
+
+/* Hangar : choix du vaisseau en bandeau compact, collé sous l'en-tête */
+@media (max-width:820px){
+  #hangar-mount .inv-side{position:sticky;top:82px;z-index:8;max-height:none;padding:6px 8px;gap:0;display:block;background:rgba(4,22,34,.96);backdrop-filter:blur(6px)}
+  #hangar-mount .inv-search,#hangar-mount .inv-cats,#hangar-mount .inv-group h3,#hangar-mount .inv-back{display:none!important}
+  #hangar-mount .inv-list{max-height:none;overflow:visible}
+  #hangar-mount .inv-group{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+  #hangar-mount .inv-group::-webkit-scrollbar{display:none}
+  #hangar-mount .inv-item{flex:0 0 auto;width:auto;grid-template-columns:24px auto;grid-template-rows:auto;column-gap:7px;padding:5px 9px;border-color:var(--line)}
+  #hangar-mount .inv-item .ico{width:24px;height:24px;grid-row:1}
+  #hangar-mount .inv-item .t{font-size:13.5px;white-space:nowrap}
+  #hangar-mount .inv-item .s{display:none}
+  #hangar-mount .inv-item .b{display:none}
+  #hangar-mount .inv-item .b-vise,#hangar-mount .inv-item .b-installe{display:none}
+  #hangar-mount .inv-detail{scroll-margin-top:136px}
+}
 </style>
 </head>
 <body>
