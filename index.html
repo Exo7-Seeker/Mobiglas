@@ -3841,16 +3841,16 @@ window.AMBIANCE={
         HH.textContent="« "+free+" »";stopWake();hfMode("thinking","Analyse…");mgFx.beep();ask(free);}
       else if(!cmdWait){HH.textContent="… "+fixNames(heard)+" (pas de « Seeker »)";wstat("Entendu : « "+cut(fixNames(heard),50)+" » — pas de « Seeker »");}
       else if(cmdWait){HH.textContent="« "+fixNames(heard)+" »";cmdWait=false;stopWake();hfMode("thinking","Analyse…");ask(fixNames(heard));}}
-    rec.onresult=function(ev){
-      for(var i=ev.resultIndex;i<ev.results.length;i++){wlog((ev.results[i].isFinal?"FINAL ":"interim ")+"#"+i+" ["+ev.results[i].length+"alt] « "+ev.results[i][0].transcript+" »");}
-      for(var i=ev.resultIndex;i<ev.results.length;i++){var R=ev.results[i];
-        if(R.isFinal){clearTimeout(iT);if(!done[i]){done[i]=1;
-          var cur0=nrm(R[0].transcript),sup=false;if(!cur0)continue;for(var jj=i+1;jj<ev.results.length;jj++){var nx=nrm(ev.results[jj][0].transcript);if(ev.results[jj].isFinal&&nx.indexOf(cur0)===0){sup=true;break;}}
-          if(sup)continue;handle(R);if(wrec!==rec)return;}}
-        else{lastR=R;lastIdx=i;if(!done[i]){var tt=R[0].transcript.trim();if(tt&&!cmdWait)wstat("Entendu : « "+cut(fixNames(tt),50)+" »");
-          clearTimeout(iT);(function(RR,ii){iT=setTimeout(function(){if(wrec!==rec||done[ii])return;done[ii]=1;handle(RR);},1100);})(R,i);}}}};
+    var pending=null;
+    function fire(){if(wrec!==rec||!pending)return;var p=pending;pending=null;handle(p);if(wrec===rec){stopWake();setTimeout(startWake,40);}}
+    /* Chrome Android marque chaque morceau comme « final » (« tu es », « tu es là », …) : on attend un vrai silence avant d'agir */
+    rec.onresult=function(ev){var last=null;for(var q=ev.results.length-1;q>=0&&!last;q--){if(ev.results[q][0].transcript.trim())last=ev.results[q];}
+      if(!last)return;var txt=joinRes(ev.results);wlog((last.isFinal?"FINAL ":"interim ")+"« "+txt+" »");
+      var P=[{transcript:txt}];for(var a=1;a<last.length&&a<4;a++){var ta=last[a].transcript.trim();if(ta)P.push({transcript:ta});}
+      pending=P;if(hfOn&&!cmdWait)HH.textContent="« "+fixNames(txt)+" »";else if(!cmdWait)wstat("Entendu : « "+cut(fixNames(txt),50)+" »");
+      clearTimeout(iT);iT=setTimeout(fire,hfOn||cmdWait?1400:1100);};
     rec.onerror=function(ev){wlog("ERROR "+ev.error);lastErr=ev.error;var perm=(ev.error==="not-allowed"||ev.error==="service-not-allowed");if(perm){permErr++;if(!gesture)wstat("Micro : en attente d'un premier toucher de l'écran…");else if(permErr>=3)wstat("Micro refusé ou occupé : autorise-le dans Chrome (cadenas de l'adresse → Micro). Nouvel essai…");}else if(ev.error!=="no-speech"&&ev.error!=="aborted"){wstat("Écoute interrompue ("+ev.error+") : nouvel essai…");}};
-    rec.onend=function(){wlog("END");clearTimeout(iT);if(wrec===rec)wrec=null;if(lastR&&!done[lastIdx]){done[lastIdx]=1;try{handle(lastR);}catch(_){}}if(wake&&!paused&&!busy&&!wrec)setTimeout(startWake,(lastErr==="not-allowed"||lastErr==="service-not-allowed")?Math.min(1500*Math.max(permErr,1),6000):(lastErr==="network"||lastErr==="audio-capture"||lastErr==="aborted")?500:30);};
+    rec.onend=function(){wlog("END");clearTimeout(iT);if(wrec===rec)wrec=null;if(pending){var pp=pending;pending=null;try{handle(pp);}catch(_){}}if(wake&&!paused&&!busy&&!wrec)setTimeout(startWake,(lastErr==="not-allowed"||lastErr==="service-not-allowed")?Math.min(1500*Math.max(permErr,1),6000):(lastErr==="network"||lastErr==="audio-capture"||lastErr==="aborted")?500:30);};
     try{rec.start();}catch(_){if(wrec===rec)wrec=null;setTimeout(startWake,500);}}
   (function(){var b=$("sk-wlogcopy");if(!b)return;b.onclick=function(){var t="Journal d'écoute Seeker (v64+)\n"+WL.join("\n");var done=function(ok){b.textContent=ok?"Journal copié ✓ — colle-le dans le chat":"Copie impossible";setTimeout(function(){b.textContent="Copier le journal d'écoute";},3500);};
       try{navigator.clipboard.writeText(t).then(function(){done(true);},function(){done(false);});}catch(_){done(false);}};})();
