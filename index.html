@@ -2690,7 +2690,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
     else if(b.dataset.az){var t=document.getElementById("cx-l-"+b.dataset.az);if(t)window.scrollTo({top:t.getBoundingClientRect().top+window.scrollY-120,behavior:"smooth"});}});
   var st=null;inp.addEventListener("input",function(){clr.hidden=!inp.value;clearTimeout(st);st=setTimeout(function(){var q=inp.value.trim();if(q.length>=2){if(state.v==="search")history.replaceState({cx:{v:"search",q:q}},"","#codex");else history.pushState({cx:{v:"search",q:q}},"","#codex");render({v:"search",q:q});}else if(!q&&state.v==="search")history.back();},200);});
   clr.addEventListener("click",function(){inp.value="";clr.hidden=true;if(state.v==="search")history.back();});
-  window.__codexHome=function(){inp.value="";clr.hidden=true;try{history.replaceState({cx:{v:"home"}},"","#codex");}catch(_){}render({v:"home"});};
+  window.__codexHome=function(){inp.value="";clr.hidden=true;try{history.replaceState({cx:{v:"home"}},"");}catch(_){}render({v:"home"});};
   window.__codexSelect=function(id){go({v:"fiche",id:id});};
   /* les archives se chargent en arrière-plan : Seeker peut ainsi les consulter dès le départ */
   (window.__mgReady||Promise.resolve()).then(function(){setTimeout(function(){load().catch(function(){});},1800);render({v:"home"});});
