@@ -1,4 +1,4 @@
-# Seeker PC — liaison Star Citizen -> mobiGlas d'Exo
+﻿# Seeker PC — liaison Star Citizen -> mobiGlas d'Exo
 # Lit le Game.log pendant que tu joues, garde uniquement les événements utiles (lieu, vaisseau, zones, notifications,
 # morts/destructions, missions...) et les envoie à ton téléphone par un relais gratuit (ntfy.sh), sans compte ni clé.
 # Rien n'est modifié dans le jeu. Ton pseudo, tes identifiants numériques et les adresses IP sont masqués avant l'envoi.
@@ -25,7 +25,7 @@ param(
 
 $ErrorActionPreference = "Continue"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-$Version = "2"
+$Version = "3"
 
 # ---------- filtres (expressions compilées : rapides même sur de gros fichiers) ----------
 # Lignes gardées et envoyées (texte après l'horodatage)
@@ -140,17 +140,34 @@ $nLues = 0
 $nEnvoyees = 0
 $nDoublons = 0
 $MaxFile = 400
+$bloqueJusqua = [DateTime]::MinValue
+# le relais gratuit limite le nombre de messages par jour (environ 250) : on les compte et on les économise
+$fichierQuota = Join-Path $dossierCfg "quota.json"
+$jourQuota = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd")
+$msgJour = 0
+$LimiteDouce = 200
+try { if (Test-Path $fichierQuota) { $q = Get-Content $fichierQuota -Raw | ConvertFrom-Json; if ($q.jour -eq $jourQuota) { $msgJour = [int]$q.n } } } catch { }
+function Noter-Quota {
+  $j = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd")
+  if ($j -ne $script:jourQuota) { $script:jourQuota = $j; $script:msgJour = 0 }
+  $script:msgJour++
+  try { @{ jour = $script:jourQuota; n = $script:msgJour } | ConvertTo-Json | Set-Content -Path $fichierQuota -Encoding UTF8 } catch { }
+}
 
 function Envoyer([string]$texte) {
   try {
     $octets = [System.Text.Encoding]::UTF8.GetBytes($texte)
     Invoke-RestMethod -Uri $Url -Method Post -Body $octets -ContentType "text/plain; charset=utf-8" -TimeoutSec 15 -UseBasicParsing | Out-Null
+    Noter-Quota
     return $true
   } catch {
     $msg = $_.Exception.Message
     Write-Host ("  (envoi impossible : " + $msg + ")") -ForegroundColor DarkYellow
-    # le service gratuit limite le débit : en cas de refus, on laisse souffler 30 s
-    if ($msg -match '429') { $script:dernierEnvoi = (Get-Date).AddSeconds(25) }
+    # le service gratuit limite les messages : en cas de refus (429), on s'arrête 10 min au lieu d'insister
+    if ($msg -match '429') {
+      $script:bloqueJusqua = (Get-Date).AddMinutes(10)
+      Write-Host "  Limite du relais gratuit atteinte : nouvel essai dans 10 min. Les événements importants restent en attente." -ForegroundColor Yellow
+    }
     return $false
   }
 }
@@ -168,6 +185,7 @@ function Ajouter([string]$ligne, [int]$p) {
 
 function Vider-File {
   if ($file.Count -eq 0) { return }
+  if ((Get-Date) -lt $script:bloqueJusqua) { return }
   $script:dernierEnvoi = Get-Date
   $lot = New-Object System.Text.StringBuilder
   while ($file.Count -gt 0) {
@@ -314,6 +332,8 @@ $dernierControle = Get-Date
 $dernierStatut = Get-Date
 $dernierTypes = Get-Date
 $enRetard = $false
+$derniereLecture = Get-Date
+$avertiQuota = $false
 
 try {
   while ($true) {
@@ -351,6 +371,7 @@ try {
           $buf = New-Object byte[] $tailleLue
           $lus = $fs.Read($buf, 0, $tailleLue)
           $position += $lus
+          if ($lus -gt 0) { $derniereLecture = $maintenant }
           $chars = New-Object char[] ($lus + 4)
           $nc = $decodeur.GetChars($buf, 0, $lus, $chars, 0)
           $texte = $reste + ([System.String]::new($chars, 0, $nc))
@@ -365,13 +386,22 @@ try {
       } catch { }
     }
 
-    # envoi groupé toutes les 5 s au plus (limite du service gratuit)
-    if ($file.Count -gt 0 -and ($maintenant - $dernierEnvoi).TotalSeconds -ge 5) { Vider-File }
+    # envoi groupé : toutes les 20 s au plus, 5 s si un événement important attend (mort, mission, quantum...)
+    # quand le quota du jour approche, on espace à 60 s
+    $delai = 20
+    if ($prio.Contains(3)) { $delai = 5 }
+    if ($msgJour -ge $LimiteDouce) { $delai = 60 }
+    if ($file.Count -gt 0 -and ($maintenant - $dernierEnvoi).TotalSeconds -ge $delai) { Vider-File }
 
-    # battement de cœur toutes les 90 s : l'appli sait que le PC est là
-    if (($maintenant - $dernierBattement).TotalSeconds -ge 90) {
+    # battement de cœur : toutes les 5 min pendant que le jeu écrit, toutes les 20 min sinon (économise le quota du relais)
+    if (($maintenant - $derniereLecture).TotalMinutes -lt 10) { $delaiHb = 300 } else { $delaiHb = 1200 }
+    if (($maintenant - $dernierBattement).TotalSeconds -ge $delaiHb -and $maintenant -ge $bloqueJusqua -and $msgJour -lt $LimiteDouce) {
       $dernierBattement = $maintenant
       [void](Envoyer ("$(Horo) [SeekerPC] hb"))
+    }
+    if ($msgJour -ge $LimiteDouce -and -not $avertiQuota) {
+      $avertiQuota = $true
+      Write-Host "  Attention : $msgJour messages envoyés aujourd'hui (limite du relais gratuit ~250). Je ralentis les envois." -ForegroundColor Yellow
     }
 
     # recensement des types de lignes : réécrit toutes les minutes s'il a changé
@@ -383,7 +413,7 @@ try {
     # petit point de situation dans la fenêtre toutes les 2 minutes
     if (($maintenant - $dernierStatut).TotalSeconds -ge 120) {
       $dernierStatut = $maintenant
-      Write-Host ("[" + $maintenant.ToString("HH:mm") + "] lignes lues : $nLues - envoyées : $nEnvoyees - répétitions ignorées : $nDoublons - en attente : " + $file.Count) -ForegroundColor DarkGray
+      Write-Host ("[" + $maintenant.ToString("HH:mm") + "] messages relais aujourd'hui : $msgJour - lignes lues : $nLues - envoyées : $nEnvoyees - répétitions ignorées : $nDoublons - en attente : " + $file.Count) -ForegroundColor DarkGray
     }
   }
 } finally {
