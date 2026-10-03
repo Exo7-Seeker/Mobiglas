@@ -1177,6 +1177,13 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
 
 .sk-gamestrip{margin:2px 14px 8px;padding:5px 10px;border:1px solid rgba(255,176,60,.35);border-radius:6px;background:rgba(255,176,60,.08);font:12px/1.35 "IBM Plex Mono",monospace;color:#ffd08a;text-align:center}
 #sk-link input[type=text]{width:100%;box-sizing:border-box;margin:6px 0}
+.sk-chips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 14px 8px;justify-content:center}
+.sk-chip{background:var(--hull);border:1px solid rgba(255,176,60,.45);color:#ffd08a;padding:6px 10px;border-radius:14px;font:11px/1.2 "IBM Plex Mono",monospace;letter-spacing:.04em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exo-live{font:10px/1 "IBM Plex Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:#6ff0ff;margin-left:6px}
+.inv-item .exo-live{display:inline-block;margin-top:3px}
+.exo-banner{display:block;margin:0 0 8px;padding:6px 10px;border:1px solid rgba(111,240,255,.5);background:rgba(111,240,255,.08);margin-left:0}
+.exo-aboard .h3d-wrap{box-shadow:0 0 22px rgba(111,240,255,.35),inset 0 0 18px rgba(111,240,255,.12);transition:box-shadow .4s}
+#cap .capitem.done .cap-title{opacity:.75}
 </style>
 </head>
 <body>
@@ -1279,6 +1286,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
       <div class="sk-hint" id="sk-hint">Touche pour parler</div>
       <div class="sk-wakestat" id="sk-wakestat" aria-live="polite"></div>
       <div class="sk-gamestrip" id="sk-gamestrip" style="display:none"></div>
+      <div class="sk-chips" id="sk-codexchips" style="display:none" aria-label="Fiches du Codex liées à ce que tu vis"></div>
       <form class="sk-type" id="sk-form"><input id="sk-input" type="text" placeholder="Ou écris à Seeker…" aria-label="Message pour Seeker" autocomplete="off"><button type="submit">Envoyer</button></form>
     </div>
     <details class="sk-set">
@@ -1292,8 +1300,11 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
         <div class="row" id="sk-link"><label>Liaison avec le jeu (PC)</label>
           <div id="sk-linkstat" style="font-size:13px;margin:4px 0">Pas encore configurée.</div>
           <label class="chk"><input type="checkbox" id="sk-linkon" checked> Recevoir ce qui se passe en jeu</label>
+          <label class="chk"><input type="checkbox" id="sk-comment" checked> Seeker commente ce qui se passe en jeu</label>
+          <div style="font-size:12px;margin:2px 0 6px">Pause minimale entre deux remarques : <select id="sk-cdelay"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="20">20 min</option><option value="30">30 min</option></select></div>
           <input id="sk-linkcode" type="text" readonly placeholder="Code de liaison (à générer)">
           <div class="btns"><button type="button" id="sk-linkgen">Générer le code</button><button type="button" id="sk-linkcopy">Copier la commande PC</button><button type="button" id="sk-linktest">Tester la liaison</button><button type="button" id="sk-linkreset">Effacer le journal</button></div>
+          <div id="sk-linkstats" style="font-size:12px;opacity:.85;margin-top:6px;display:none"></div>
           <div id="sk-linklog" style="font-size:12px;opacity:.85;line-height:1.5;margin-top:6px"></div></div>
         <label class="chk"><input type="checkbox" id="sk-hfauto"> Démarrer en mains libres : écoute continue « Seeker… »</label>
         <label class="chk"><input type="checkbox" id="sk-sound"> Sons d'interface</label>
@@ -1913,7 +1924,7 @@ window.__hangarSelect=id=>hangar.select(id,false);
       box.append(a);});link(box);},fail("entries"));
   // CAP
   db.collection("cap").orderBy("ordre","asc").onSnapshot(s=>{const box=$("cap");if(s.empty)return;box.textContent="";
-    s.docs.forEach(d=>{const v=d.data()||{};const it=el("div","capitem"+(v.statut==="atteint"?" done":""));
+    s.docs.forEach(d=>{const v=d.data()||{};const it=el("div","capitem"+((v.statut==="atteint"||v.statut==="abandonné")?" done":""));
       const top=el("div","cap-top");top.append(el("span","cap-title",v.titre||""),el("span","cap-status",v.statut||"en cours"));it.append(top);
       if(v.detail)it.append(el("p",null,v.detail));box.append(it);});link(box);},fail("cap"));
   // SPECTRUM
@@ -2602,6 +2613,14 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
       else if(o.kind==="repere"){if(o.hidden)return;ctx.save();ctx.translate(x,y);ctx.fillStyle="#ffb347";ctx.strokeStyle="#020a10";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-5,-9);ctx.arc(0,-10,5,Math.PI,0);ctx.lineTo(0,0);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle="#020a10";ctx.beginPath();ctx.arc(0,-10,1.8,0,7);ctx.fill();ctx.restore();o.sr=8;}
       else if(o.kind==="marker"){ctx.fillStyle="rgba(95,227,240,.9)";ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();o.sr=4;}
     });
+    /* position d'Exo en jeu (alimentée par la liaison avec le jeu) : anneau cyan « EXO » sur le lieu, sinon sur la planète ou le système */
+    (function(){var EX=window.__mapExo;if(!EX||!EX.ids)return;var eo=null;
+      for(var ei=0;ei<EX.ids.length&&!eo;ei++){var id=EX.ids[ei];eo=SC.objs.find(function(o){return o.id===id&&o.s&&!o.hidden;});}
+      if(!eo)return;var ex=eo.s[0],ey=eo.s[1],ph=(t%1700)/1700;ctx.save();
+      ctx.strokeStyle="rgba(95,227,240,"+(1-ph).toFixed(2)+")";ctx.lineWidth=2;ctx.beginPath();ctx.arc(ex,ey,11+ph*26,0,Math.PI*2);ctx.stroke();
+      ctx.strokeStyle="#5fe3f0";ctx.lineWidth=2;ctx.beginPath();ctx.arc(ex,ey,13,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle="#5fe3f0";ctx.beginPath();ctx.arc(ex,ey,3,0,Math.PI*2);ctx.fill();
+      ctx.font="bold 11px sans-serif";ctx.textAlign="center";ctx.fillStyle="#5fe3f0";ctx.shadowColor="#020a10";ctx.shadowBlur=4;ctx.fillText("EXO",ex,ey-19);ctx.restore();})();
     var showRet=false;
     SC.objs.forEach(function(o){if(!o.el)return;var vis=o.s&&!o.hidden&&o.s[0]>-60&&o.s[0]<W+60&&o.s[1]>-20&&o.s[1]<H+20;o.el.style.display=vis?"":"none";if(!vis)return;
       o.el.style.transform="translate("+o.s[0].toFixed(1)+"px,"+(o.s[1]+(o.sr||6)+(o.kind==="system"?8:3)).toFixed(1)+"px) translate(-50%,0)";
@@ -3534,7 +3553,7 @@ window.AMBIANCE={
   if($("sk-svask"))$("sk-svask").onclick=function(){ask("Seeker, raconte-moi un souvenir de notre mercenariat avec le capitaine.");};
   /* ---------- données de l'appli ---------- */
   function A(){return window.__APP||{};}
-  function state(){var b=state0(),gs="";try{gs=window.__gameState?window.__gameState():"";}catch(_){}return b+(gs?"\n"+gs:"");}
+  function state(){var b=state0(),gs="",gm="";try{gs=window.__gameState?window.__gameState():"";gm=window.__gameMemory?window.__gameMemory():"";}catch(_){}return b+(gs?"\n"+gs:"")+(gm?"\n"+gm:"");}
   function state0(){
     var cap=__mgGet("cap"),hg=__mgGet("hangar"),jr=__mgGet("journal"),dc=__mgGet("decouvertes");
     var capL=Object.keys(cap).map(function(k){return cap[k];}).sort(function(a,b){return a.ordre-b.ordre;}).map(function(c){return "- "+c.titre+" ("+c.statut+") : "+c.detail;}).join("\n");
@@ -3634,7 +3653,7 @@ window.AMBIANCE={
     else if(B.kind==="city"){if(!sameTop)E.push("Saut quantique vers "+B.top);E.push("Saut quantique vers "+B.label+" (marqueur en orbite)");E.push("Descente et demande d'atterrissage à "+B.label);}
     else if(B.kind==="site"){if(!sameTop||B.body!==B.top)E.push("Saut quantique vers "+B.body);
       if(B.qt){E.push("Saut quantique vers "+B.label);E.push("Approche et atterrissage à "+B.label);}else{E.push("Pas de marqueur QT : approche à vue jusqu'à "+B.label);}}
-    if(window.__map){goTab("carte");if(view==="galaxy")__map.go("galaxy");else __map.go(view);
+    if(window.__map){if(!inp.silent)goTab("carte");if(view==="galaxy")__map.go("galaxy");else __map.go(view);
       setTimeout(function(){if(window.__mapRoute)__mapRoute.set(R);},120);}
     return {ok:true,depart:A0.label,destination:B.label,systeme:B.sys,etapes:E};}
 
@@ -3769,6 +3788,27 @@ window.AMBIANCE={
     finally{busy=false;if(!root.classList.contains("speaking")){setMode(null);if(window.__hfResume&&!window.__skSpeaking&&!((window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending))||(window.__SKV&&__SKV.isPlaying())))__hfResume();}}
   }
   $("sk-form").addEventListener("submit",function(e){e.preventDefault();var i=$("sk-input");var t=i.value;i.value="";ask(t);});
+  /* itinéraire silencieux (n'ouvre pas l'onglet Carte) : utilisé par la liaison avec le jeu */
+  window.__skRoute=function(dep,dest){try{var inp={destination:dest,silent:true};if(dep)inp.depart=dep;return tracer(A(),inp);}catch(e){return {ok:false,erreur:String(e&&e.message||e)};}};
+  /* remarque spontanée de Seeker à partir d'un événement du jeu (jamais d'ordre ; peut proposer un souvenir, à valider) */
+  window.__skRemark=async function(evText,opts){opts=opts||{};
+    var key=g(K.key,"");if(!key||hfOn||!evText)return false;
+    if(busy||root.classList.contains("speaking")||window.__skSpeaking)return "busy";
+    busy=true;var ok=false;
+    try{
+      var note="[ÉVÉNEMENT DE BORD — tes capteurs viennent de le signaler. Exo ne t'a rien demandé. Si tu as une remarque brève et vraiment pertinente (1 à 3 phrases, dans ton caractère), dis-la. Aucun ordre, aucune consigne, ne dis jamais ce qu'il doit faire. Ne parle jamais de fichier, de PC ou de journal. Si rien ne mérite d'être dit, réponds exactement « … ».]"+(opts.codex&&opts.codex.length?"\n[FICHES DU CODEX — décris le vaisseau, la ville ou la planète concernés uniquement avec ces extraits, avec tes mots, sans rien ajouter d'inventé ; si cela ne s'applique pas à l'événement, n'en parle pas :]\n"+opts.codex.join("\n"):"")+(opts.mem?"\n[SOUVENIR POSSIBLE — si l'événement s'y prête vraiment (arrivée en un lieu, montée à bord d'un vaisseau), tu peux à la place d'une simple remarque proposer un souvenir d'Exo lié à ce lieu ou ce vaisseau : commence par [PROPOSITION], puis 4 à 7 phrases courtes à la première personne, cohérentes avec ses souvenirs validés et son passé, sans date ni chiffre précis, et termine par « Je la garde ? ». Ne répète pas un souvenir déjà validé.]":"")+"\n"+evText;
+      var msgs=hist.slice(-8).concat([{role:"user",content:note}]);
+      var ctl=new AbortController(),tmo=setTimeout(function(){ctl.abort();},30000);
+      var res=await fetch("https://api.anthropic.com/v1/messages",{signal:ctl.signal,method:"POST",headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+        body:JSON.stringify({model:g(K.model,"claude-haiku-4-5-20251001"),max_tokens:opts.mem?600:260,system:[{type:"text",text:PERSONA,cache_control:{type:"ephemeral"}},{type:"text",text:state()+(persoText()?"\n"+persoText():"")}],messages:msgs})});
+      clearTimeout(tmo);if(!res.ok)return false;
+      var data=await res.json(),final=(data.content||[]).filter(function(b){return b.type==="text";}).map(function(b){return b.text;}).join(" ").trim();
+      if(!final||/^[«"\s]*…[»"\s.]*$/.test(final)||/^\.{3}$/.test(final))return false;
+      hist.push({role:"user",content:"[Événement de bord] "+evText},{role:"assistant",content:final});hist=hist.slice(-20);s(K.hist,JSON.stringify(hist));
+      say(final);ok=true;
+    }catch(_){ok=false;}
+    finally{busy=false;}
+    return ok;};
 
   /* ---------- micro ---------- */
   /* ---------- reconnaissance vocale : réglages communs ---------- */
@@ -3893,43 +3933,186 @@ window.AMBIANCE={
    Le PC envoie des lignes de journal filtrées ; tout le décodage se fait ici, donc on peut l'améliorer sans toucher au PC. */
 (function(){
   var $=function(i){return document.getElementById(i);};
-  var K={code:"mg-link-code",on:"mg-link-on",last:"mg-link-last",st:"mg-link-state"};
+  var K={code:"mg-link-code",on:"mg-link-on",last:"mg-link-last",st:"mg-link-state",cm:"mg-comment",cd:"mg-cdelay",cl:"mg-comment-last"};
   function g(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(_){return d;}}
   function s(k,v){try{localStorage.setItem(k,v);}catch(_){}}
   var SERVER="https://ntfy.sh";
-  var G={pcAt:0,relayAt:0,loc:null,locAt:0,jur:null,arm:null,mon:false,ship:null,shipAt:0,pilot:false,crime:0,med:0,deaths:0,kills:0,sStart:0,sEnd:0,shard:null,ev:[],key:[],trail:[]};
+  var G={pcAt:0,relayAt:0,loc:null,locAt:0,jur:null,arm:null,mon:false,ship:null,shipAt:0,pilot:false,crime:0,med:0,deaths:0,kills:0,sStart:0,sEnd:0,shard:null,locRaw:null,ev:[],key:[],trail:[],miss:null,pk:null,route:null,salv:0,cur:null};
   try{var old=JSON.parse(g(K.st,"null"));if(old&&typeof old==="object"){for(var k in old)if(k in G&&k!=="relayAt")G[k]=old[k];}}catch(_){}
   var BODY={"1":"Hurston","2":"Crusader","3":"ArcCorp","4":"microTech"};
   var es=null,pendingN=null,testT=null,testing=false,bus=[];
 
-  function prettyLoc(id){var m=String(id).match(/^(Stanton|Pyro|Nyx)(\d+)?_?(.*)$/i);if(!m)return String(id).replace(/_/g," ");
+  var HUBN={HUR:"Hurston",CRU:"Crusader",ARC:"ArcCorp",MIC:"microTech"};
+  var MAKER={DRAK:"Drake",MRAI:"Mirai",AEGS:"Aegis",ANVL:"Anvil",CRUS:"Crusader",ORIG:"Origin",RSI:"RSI",MISC:"MISC",ARGO:"Argo",ESPR:"Esperia",BANU:"Banu",CNOU:"Consolidated Outland",KRIG:"Kruger",TMBL:"Tumbril",GRIN:"Greycat"};
+  function shipName(n){n=String(n).replace(/_\d{4,}$/,"");var m=n.match(/^([A-Z]{4})_(.+)$/);if(m&&MAKER[m[1]])return MAKER[m[1]]+" "+m[2].replace(/_/g," ");return n.replace(/_/g," ");}
+  function prettyItem(c){var t=String(c).replace(/(_\d+)+(_[a-z])?$/i,"").split("_").filter(Boolean).map(function(w){return w.length<=3?w.toUpperCase():w.charAt(0).toUpperCase()+w.slice(1);});return t.join(" ");}
+  var DIFF={veryeasy:"très facile",easy:"facile",medium:"moyenne",hard:"difficile",veryhard:"très difficile",superhard:"extrême"};
+  function contractKind(c){var parts=String(c).split("_"),diff="",leg="",cat=[];parts.forEach(function(w,i){var lw=w.toLowerCase();if(i===0)return;if(/^stanton\d*$|^pyro\d*$|^nyx\d*$/.test(lw))return;if(lw==="lawful")leg="légale";else if(lw==="unlawful")leg="illégale";else if(DIFF[lw])diff=DIFF[lw];else cat.push(w);});
+    return [cat.join(" "),leg,diff].filter(Boolean).join(", ");}
+  function questDest(d){var m=String(d).match(/^MISSION_QT_Quantum_Beacon_[A-Za-z]+_([A-Za-z]+)_\d+/);if(m)return "balise de mission ("+m[1]+")";return String(d).replace(/^ObjectContainer_/,"").replace(/_/g," ").replace(/_?\d{6,}$/,"").trim();}
+  function prettyLoc(id){var rr=String(id).match(/^RR_([A-Z]{3})_L(\d)$/);if(rr)return "Station Rest & Relax "+rr[1]+"-L"+rr[2]+(HUBN[rr[1]]?" ("+HUBN[rr[1]]+")":"");var m=String(id).match(/^(Stanton|Pyro|Nyx)(\d+)?_?(.*)$/i);if(!m)return String(id).replace(/_/g," ");
     var place=m[3].replace(/_/g," ").replace(/([a-z])([A-Z])/g,"$1 $2").trim();var body=(m[1].toLowerCase()==="stanton"&&m[2])?BODY[m[2]]:null;
     var out=place||body||m[1];if(body&&place&&place.toLowerCase()!==body.toLowerCase())out+=" ("+body+")";else if(!body&&m[1].toLowerCase()!=="stanton"&&place)out+=" ("+m[1]+")";return out;}
   function ago(t){var d=Math.max(0,Math.round((Date.now()-t)/1000));if(d<60)return "à l'instant";if(d<3600)return "il y a "+Math.round(d/60)+" min";if(d<86400)return "il y a "+Math.round(d/3600)+" h";return "il y a "+Math.round(d/86400)+" j";}
   function norm(t){return String(t||"").replace(/\s+/g," ").trim();}
 
-  var KEYK={loc:1,ship:1,mission:1,death:1,kill:1,destroy:1,crime:1,session:1,med:1};
+  var KEYK={route:1,quantum:1,loc:1,ship:1,mission:1,death:1,kill:1,destroy:1,crime:1,session:1,med:1};
   function push(ts,kind,text,extra){var e={t:ts,k:kind,x:text};
     for(var i=0;i<Math.min(6,G.ev.length);i++){if(G.ev[i].x===text&&Math.abs(ts-G.ev[i].t)<30000)return;}
     G.ev.unshift(e);if(G.ev.length>150)G.ev.length=150;
     if(KEYK[kind]){G.key.unshift(e);if(G.key.length>40)G.key.length=40;}
     var ev={t:ts,k:kind,x:text,live:Date.now()-ts<120000,x2:extra||null};bus.forEach(function(f){try{f(ev,G);}catch(_){}});}
-  function setLoc(id,ts){var p=prettyLoc(id);if(G.loc===p)return;G.loc=p;G.locAt=ts;G.trail.unshift({t:ts,x:p});if(G.trail.length>6)G.trail.length=6;push(ts,"loc","Arrivée : "+p);}
+
+  /* ---------- carte : position d'Exo et route tracée par ses propres choix en jeu ---------- */
+  function nk(x){return String(x||"").toLowerCase().replace(/[^a-z0-9]/g,"");}
+  function appD(){return window.__APP||{};}
+  /* identifiant du jeu (Stanton1_Lorville, RR_HUR_L3, ObjectContainer_Lorville_City…) -> lieu connu de la carte */
+  function resolveGame(raw){raw=String(raw||"");if(!raw)return null;var ap=appD(),pl=ap.places||[],bo=ap.bodies||[],si=ap.sites||[],m=raw.match(/^RR_([A-Z]{3})_L(\d)$/);
+    if(m){var pre=m[1]+"-L"+m[2],p=pl.find(function(x){return x.name.indexOf(pre)===0;});return p?{t:"place",n:p.name,p:p}:null;}
+    m=raw.match(/^(?:Stanton|Pyro|Nyx)(\d+)?_(.+)$/i);var rest=(m?m[2]:raw.replace(/^ObjectContainer_/,"")).replace(/_City$/i,"").replace(/([a-z])([A-Z])/g,"$1 $2"),nr=nk(rest);
+    if(nr){var p2=pl.find(function(x){return nk(x.name)===nr;})||(nr.length>5?pl.find(function(x){return nk(x.name).indexOf(nr)===0;}):null);if(p2)return {t:"place",n:p2.name,p:p2};
+      var s2=si.find(function(x){return nk(x.name)===nr;});if(s2)return {t:"site",n:s2.name,body:s2.body};
+      var b2=bo.find(function(x){return nk(x.name)===nr;});if(b2)return {t:"body",n:b2.name,sys:b2.sys};}
+    if(m&&m[1]){var bn=BODY[m[1]],b3=bo.find(function(x){return x.name===bn;});if(b3)return {t:"body",n:b3.name,sys:b3.sys};}
+    return null;}
+  /* texte d'objectif (« Salvage the … at HUR-L3 Thundering Express ») -> lieu connu */
+  function placeFromText(t){var ap=appD(),pl=ap.places||[],lt=String(t||"").toLowerCase();if(!lt)return null;
+    var hit=pl.find(function(x){var n=x.name.toLowerCase().replace(/ (service )?station$/,"");return n.length>5&&lt.indexOf(n)>=0;});
+    if(!hit){var c=lt.match(/\b([a-z]{3}-l\d)\b/);if(c)hit=pl.find(function(x){return x.name.toLowerCase().indexOf(c[1])===0;});}
+    return hit||null;}
+  function topBody(ap,n){var by={};(ap.bodies||[]).forEach(function(b){by[b.name]=b;});var b=by[n],g=0;while(b&&b.parent&&by[b.parent]&&g++<5)b=by[b.parent];return b?b.name:n;}
+  function candIds(r){var ap=appD();if(!r)return null;var ids=[];
+    if(r.t==="place"){ids.push("pl:"+r.n);if(r.p&&r.p.parent)ids.push(topBody(ap,r.p.parent));if(r.p&&r.p.sys)ids.push("sys:"+r.p.sys);}
+    else if(r.t==="site"){ids.push(topBody(ap,r.body));var b=(ap.bodies||[]).find(function(x){return x.name===r.body;});if(b)ids.push("sys:"+b.sys);}
+    else{ids.push(r.n);ids.push(topBody(ap,r.n));if(r.sys)ids.push("sys:"+r.sys);}
+    return ids;}
+  var mapT=null;
+  function updateMap(){clearTimeout(mapT);mapT=setTimeout(function(){
+    var info=window.__gameMapInfo?window.__gameMapInfo():null;window.__mapExo=window.__mapExo||{};
+    window.__mapExo.ids=(info&&info.loc)?candIds(resolveGame(info.loc)):null;},150);}
+  var lastRouteSig="";
+  function drawRoute(ev){
+    if(!ev.live||!window.__skRoute)return;var dest=null,txt=ev.x;
+    if(ev.k==="route"&&G.route){var r=resolveGame(G.route.raw);dest=r&&r.t==="place"?r.n:(r&&r.t==="body"?r.n:null);if(!dest&&G.miss&&G.miss.obj){var pp=placeFromText(G.miss.obj);if(pp)dest=pp.name;}}
+    else if(ev.k==="mission"&&/^Nouvel objectif/.test(ev.x)&&G.miss&&G.miss.obj){var p3=placeFromText(G.miss.obj);if(p3)dest=p3.name;}
+    if(!dest)return;var dep=null,rl=resolveGame(G.locRaw);if(rl&&(rl.t==="place"||rl.t==="body"))dep=rl.n;
+    var sig=(dep||"")+">"+dest;if(sig===lastRouteSig&&ev.k!=="route")return;lastRouteSig=sig;if(dep===dest)return;
+    try{window.__skRoute(dep,dest);}catch(_){}}
+  function clearRoute(){lastRouteSig="";try{if(window.__mapRoute&&__mapRoute.get&&__mapRoute.get())__mapRoute.clear();}catch(_){}}
+  window.__gameMapInfo=function(){if(!g(K.code,"")||g(K.on,"1")!=="1")return null;if(!pcOnline()&&!playing())return null;return {loc:G.locRaw||null,locAt:G.locAt};};
+
+  /* ---------- remarques spontanées de Seeker ---------- */
+  var remT=null,remPend=[];
+  var NOTABLE=/^(Arrivée|Mission acceptée|Mission terminée|Nouvel objectif|Mission échouée|Mission abandonnée|Objectif accompli|Saut quantique terminé|Montée à bord|Demande de hangar|CrimeStat en hausse|Alerte température|Route tracée|Faisceau)/;
+  var MEMK="mg-mem-last";
+  function codexLine(e){return "- "+e.title+" : "+String(e.text).replace(/\[([^\]]+)\]\([^)]*\)/g,"$1").replace(/\s+/g," ").slice(0,480);}
+  function codexContext(lines){var out=[],seen={};lines.forEach(function(l){codexSubjects({k:"",x:l},l).forEach(function(e){if(seen[e.id])return;seen[e.id]=1;if(e.text&&!/^En attente de relecture/.test(e.text))out.push(codexLine(e));});});
+    if(G.locRaw&&lines.some(function(l){return /^Arrivée/.test(l);})){var r=resolveGame(G.locRaw);if(r){[r.n,r.p&&r.p.parent,r.body].forEach(function(n){var e=n&&codexFind(n);if(e&&!seen[e.id]){seen[e.id]=1;if(e.text&&!/^En attente de relecture/.test(e.text))out.push(codexLine(e));}});}}
+    return out.slice(0,3);}
+  function considerRemark(ev){
+    if(!ev.live||g(K.cm,"1")!=="1"||!window.__skRemark||!NOTABLE.test(ev.x))return;
+    if(!pcOnline()||G.sEnd)return;
+    remPend.push(ev.x);if(remPend.length>6)remPend.shift();
+    if(remT)return;
+    remT=setTimeout(function(){remT=null;var lines=remPend.slice();remPend=[];fire(lines,0);},7000);}
+  function fire(lines,n){
+    if(!pcOnline()||G.sEnd)return;
+    var gap=(parseInt(g(K.cd,"10"),10)||10)*60000,last=parseInt(g(K.cl,"0"),10)||0;
+    if(Date.now()-last<gap)return;
+    var cx=codexContext(lines),memLast=parseInt(g(MEMK,"0"),10)||0,placeEv=lines.some(function(l){return /^(Arrivée|Montée à bord)/.test(l);});
+    var allowMem=placeEv&&Date.now()-memLast>30*60000;
+    var ctxt=lines.join("\n")+"\n(Contexte : "+(G.loc?"position "+G.loc+"; ":"")+(G.miss&&G.miss.name?"contrat "+G.miss.name:"aucun contrat suivi")+")";
+    window.__skRemark(ctxt,{codex:cx,mem:allowMem}).then(function(ok){
+      if(ok===true){s(K.cl,String(Date.now()));if(allowMem)s(MEMK,String(Date.now()));}
+      else if(ok==="busy"&&n<2)setTimeout(function(){fire(lines,n+1);},20000);});}
+  bus.push(function(ev){updateMap();drawRoute(ev);liveExtras(ev);if(ev.k==="quantum"||(ev.k==="mission"&&/^Mission (terminée|échouée|abandonnée)/.test(ev.x)))clearRoute();considerRemark(ev);});
+  function liveExtras(ev){if(!ev.live)return;
+    if(ev.k==="loc"||ev.k==="ship"||(ev.k==="mission"&&/^(Mission acceptée|Nouvel objectif)/.test(ev.x)))addChips(codexSubjects(ev,ev.x));
+    if(ev.k==="ship"||ev.k==="session"||ev.k==="loc")setTimeout(markHangar,120);}
+  function setLoc(id,ts){var p=prettyLoc(id);if(G.loc===p)return;G.loc=p;G.locRaw=id;G.locAt=ts;sess(ts,"place",p);G.trail.unshift({t:ts,x:p});if(G.trail.length>6)G.trail.length=6;push(ts,"loc","Arrivée : "+p);}
+
+  /* ---------- D : l'onglet Cap suit les contrats du jeu (ouverts, puis fermés à la réussite ou à l'abandon) ---------- */
+  function capDetail(){var m=G.miss;if(!m)return "";return [m.kind,m.obj?"Objectif : "+m.obj:""].filter(Boolean).join(" · ");}
+  function capWrite(mid,name,patch,ts){if(!mid||!window.__mgDB)return;try{var id="jeu-"+String(mid).replace(/[^0-9a-f]/gi,"").slice(0,8),cur=window.__mgGet?window.__mgGet("cap")[id]:null,col=window.__mgDB.collection("cap");
+    if(!cur){var base={titre:String(name||"Contrat en cours").slice(0,120),statut:"en cours",detail:"",ordre:Math.floor((ts||Date.now())/1000)};for(var k in patch)base[k]=patch[k];col.doc(id).set(base);}
+    else{if(patch.statut==="en cours"&&(cur.statut==="atteint"||cur.statut==="abandonné"))return;var same=true;for(var k2 in patch)if(cur[k2]!==patch[k2])same=false;if(!same)col.doc(id).update(patch);}}catch(_){}}
+
+  /* ---------- I : mémoire des sessions ---------- */
+  var SK="mg-link-sessions";
+  function sessList(){try{var a=JSON.parse(g(SK,"[]"));return Array.isArray(a)?a:[];}catch(_){return [];}}
+  function sessSave(c){if(!c||!c.start)return;var L=sessList().filter(function(x){return x.start!==c.start;});L.push(c);L.sort(function(a,b){return a.start-b.start;});if(L.length>12)L=L.slice(-12);s(SK,JSON.stringify(L));}
+  function newCur(ts){return {start:ts,end:0,places:[],missions:[],ships:[],qt:0,items:0,salv:0,crime:0};}
+  function sess(ts,what,d){if(!G.cur)G.cur=newCur(ts);var c=G.cur;if(ts>(c.last||0))c.last=ts;
+    if(what==="place"){if(c.places[c.places.length-1]!==d)c.places.push(d);if(c.places.length>14)c.places.shift();}
+    else if(what==="mission"){c.missions.push({n:d.n,r:""});if(c.missions.length>10)c.missions.shift();}
+    else if(what==="mres"){for(var i=c.missions.length-1;i>=0;i--){if(!c.missions[i].r&&(!d.n||c.missions[i].n===d.n||d.n.indexOf(c.missions[i].n)===0||c.missions[i].n.indexOf(d.n)===0)){c.missions[i].r=d.r;break;}}}
+    else if(what==="ship"){if(c.ships.indexOf(d)<0)c.ships.push(d);}
+    else if(what==="qt")c.qt++;else if(what==="item")c.items++;else if(what==="salv")c.salv=1;else if(what==="crime")c.crime++;}
+  function closeCur(ts){if(G.cur){G.cur.end=Math.max(G.cur.last||G.cur.start,Math.min(ts||0,Date.now()))||G.cur.last||G.cur.start;sessSave(G.cur);G.cur=null;}}
+  function durMin(c){var e=c.end||c.last||c.start;return Math.max(1,Math.round((e-c.start)/60000));}
+  window.__gameMemory=function(){if(g(K.on,"1")!=="1"||!g(K.code,""))return "";
+    var all=sessList(),L=all.filter(function(x){return !G.cur||x.start!==G.cur.start}).slice(-3).reverse();if(!L.length)return "";
+    var o=["MÉMOIRE DE BORD (sessions passées d'Exo : tes capteurs s'en souviennent, tu peux y faire allusion si c'est pertinent) :"];
+    L.forEach(function(x){var t=[];if(x.places.length)t.push(x.places.slice(0,6).join(" → "));
+      if(x.missions.length)t.push("contrats : "+x.missions.slice(-3).map(function(m){return m.n.slice(0,50)+(m.r?" ("+m.r+")":" (en cours)");}).join(" ; "));
+      if(x.ships.length)t.push("à bord : "+x.ships.join(", "));if(x.qt)t.push(x.qt+" saut(s) quantique(s)");if(x.salv)t.push("faisceau de récupération utilisé");
+      o.push("- "+ago(x.start)+", ~"+durMin(x)+" min : "+t.join(" · "));});
+    var done=0,qt=0;all.forEach(function(x){qt+=x.qt||0;(x.missions||[]).forEach(function(m){if(m.r==="terminée")done++;});});
+    o.push("- Carrière depuis la liaison : "+all.length+" session(s), "+done+" contrat(s) terminé(s), "+qt+" saut(s) quantique(s).");return o.join("\n");};
+  function careerText(){var all=sessList();if(!all.length)return "";var done=0,qt=0;all.forEach(function(x){qt+=x.qt||0;(x.missions||[]).forEach(function(m){if(m.r==="terminée")done++;});});return "Carnet d'Exo : "+all.length+" session(s) · "+done+" contrat(s) terminé(s) · "+qt+" saut(s) quantique(s)";}
+
+  /* ---------- E : fiches du Codex proposées au bon moment ---------- */
+  var MAKERS="Aegis|Drake|Anvil|MISC|RSI|Origin|Crusader|Argo|Consolidated Outland|Banu|Esperia|Kruger|Tumbril|Greycat|Mirai";
+  function codexFind(name){var cx=(window.__APP&&window.__APP.codex)||[];if(!cx.length||!name)return null;var n=nk(name);
+    var hit=cx.filter(function(x){return nk(x.title)===n||nk(x.en)===n;});if(!hit.length)return null;
+    hit.sort(function(a,b){return (/^En attente de relecture/.test(a.text||"")?1:0)-(/^En attente de relecture/.test(b.text||"")?1:0);});return hit[0];}
+  function codexSubjects(ev,text){var out=[],seen={};function add(nm){var e=codexFind(nm);if(e&&!seen[e.id]){seen[e.id]=1;out.push(e);}}
+    var T=String(text||ev.x||"");var re=new RegExp("\\b(?:"+MAKERS+")\\s+([A-Z][\\w-]+(?:\\s[A-Z0-9][\\w-]*)?)","g"),m;
+    while((m=re.exec(T))){var w=m[1].split(/\s+/);for(var k=w.length;k>=1;k--){var e=codexFind(w.slice(0,k).join(" "));if(e){add(w.slice(0,k).join(" "));break;}}}
+    if(ev.k==="loc"){var r=resolveGame(G.locRaw);if(r){if(r.t==="place"){add(r.n);add(r.n.replace(/ (Service )?Station$/,""));var pr=r.p&&r.p.parent;if(pr)add(pr);}else if(r.t==="body")add(r.n);else if(r.t==="site"&&r.body)add(r.body);}}
+    return out.slice(0,2);}
+  var chips=[];
+  function renderChips(){var box=$("sk-codexchips");if(!box)return;var now=Date.now();chips=chips.filter(function(c){return now-c.t<600000;});box.innerHTML="";
+    chips.forEach(function(c){var b=document.createElement("button");b.type="button";b.className="sk-chip";b.textContent="📖 "+c.title;b.onclick=function(){chips=chips.filter(function(x){return x.id!==c.id;});renderChips();location.hash="#codex";setTimeout(function(){try{window.__codexSelect&&window.__codexSelect(c.id);}catch(_){}},90);};box.appendChild(b);});box.style.display=chips.length?"":"none";}
+  function addChips(list){list.forEach(function(e){chips=chips.filter(function(c){return c.id!==e.id;});chips.unshift({id:e.id,title:e.title,t:Date.now()});});if(chips.length>3)chips.length=3;renderChips();}
+
+  /* ---------- F : hangar vivant ---------- */
+  var SHIPS=[[/f7c|hornet/i,"f7c"],[/vulture/i,"vulture"],[/corsair/i,"corsair"],[/pulse/i,"pulse"]];
+  function hangarId(n){for(var i=0;i<SHIPS.length;i++)if(SHIPS[i][0].test(n||""))return SHIPS[i][1];return null;}
+  var hmo=null,hbusy=false;
+  function markHangar(){var mount=$("hangar-mount");if(!mount||hbusy)return;hbusy=true;if(hmo)hmo.disconnect();
+    try{mount.querySelectorAll(".exo-live").forEach(function(e){e.remove();});var det=mount.querySelector(".inv-detail");if(det)det.classList.remove("exo-aboard");
+      var live=g(K.code,"")&&g(K.on,"1")==="1"&&pcOnline()&&G.ship&&!G.sEnd,id=live?hangarId(G.ship):null;
+      if(id){var it=mount.querySelector('.inv-item[data-id="ship-'+id+'"]');if(it){var b=document.createElement("span");b.className="exo-live";b.textContent=G.pilot?"● À bord":"● Sorti";it.appendChild(b);}
+        var cur=mount.querySelector('.inv-item[aria-current="true"]');if(det&&cur&&cur.dataset.id==="ship-"+id){det.classList.add("exo-aboard");var ban=document.createElement("div");ban.className="exo-live exo-banner";ban.textContent=G.pilot?"● Exo est aux commandes de ce vaisseau":"● Ce vaisseau est sorti du hangar";det.insertBefore(ban,det.firstChild);}}}catch(_){}
+    hbusy=false;if(hmo)hmo.observe(mount,{childList:true,subtree:true});}
+  function watchHangar(){var mount=$("hangar-mount");if(!mount){setTimeout(watchHangar,800);return;}if(window.MutationObserver){hmo=new MutationObserver(function(){clearTimeout(watchHangar._t);watchHangar._t=setTimeout(markHangar,60);});hmo.observe(mount,{childList:true,subtree:true});}markHangar();}
 
   function notif(text,mission,objective,ts){
     var t=norm(String(text).replace(/\s*:\s*$/,""));var m;
     var hasMission=mission&&!/^(ZEROGUID|[0#-]+)$/.test(mission.trim());
-    if(/Entering Armistice Zone/i.test(t)){G.arm=true;push(ts,"zone","Entrée en zone d'armistice");}
+    var mid=(mission&&/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(mission.trim()))?mission.trim():(G.miss&&G.miss.id)||null;
+    if((m=t.match(/^Contract Accepted:\s*(.+)$/i))){G.miss={id:mid,name:m[1],obj:null,at:ts,kind:(G.pk&&ts-G.pk.t<120000)?G.pk.k:null};G.pk=null;
+      push(ts,"mission","Mission acceptée : "+m[1].slice(0,140)+(G.miss.kind?" ("+G.miss.kind+")":""));sess(ts,"mission",{n:m[1].slice(0,80)});capWrite(mid,m[1],{titre:m[1].slice(0,120),statut:"en cours",detail:capDetail()},ts);}
+    else if((m=t.match(/^New Objective:\s*(.+)$/i))){if(!G.miss)G.miss={id:mid,name:null,obj:null,at:ts};if(mid&&!G.miss.id)G.miss.id=mid;G.miss.obj=m[1];
+      push(ts,"mission","Nouvel objectif : "+m[1].slice(0,140));capWrite(mid,G.miss.name,{detail:capDetail()},ts);}
+    else if((m=t.match(/^Objective Complete:\s*(.+)$/i))){if(G.miss)G.miss.obj=null;push(ts,"mission","Objectif accompli : "+m[1].slice(0,140));capWrite(mid,G.miss&&G.miss.name,{detail:(G.miss&&G.miss.kind?G.miss.kind+" · ":"")+"Objectif accompli : "+m[1].slice(0,100)},ts);}
+    else if((m=t.match(/^Contract Complete:\s*(.+)$/i))){var kd=G.miss&&G.miss.kind;G.miss=null;push(ts,"mission","Mission terminée : "+m[1].slice(0,140));sess(ts,"mres",{n:m[1].slice(0,80),r:"terminée"});capWrite(mid,m[1],{statut:"atteint",detail:(kd?kd+" · ":"")+"Contrat terminé"},ts);}
+    else if((m=t.match(/^Contract (Failed|Abandoned|Cancel+ed):?\s*(.*)$/i))){var kd2=G.miss&&G.miss.kind,fl=/^f/i.test(m[1]);G.miss=null;push(ts,"mission","Mission "+(fl?"échouée":"abandonnée")+(m[2]?" : "+m[2].slice(0,140):""));sess(ts,"mres",{n:(m[2]||"").slice(0,80),r:fl?"échouée":"abandonnée"});capWrite(mid,m[2],{statut:"abandonné",detail:(kd2?kd2+" · ":"")+(fl?"Contrat échoué":"Contrat abandonné")},ts);}
+    else if(/^Hangar Request Completed/i.test(t)){push(ts,"ship","Demande de hangar terminée : le vaisseau est prêt");}
+    else if(/^Player Temperature:/i.test(t)){push(ts,"notif","Alerte température : "+(/low temperature/i.test(t)?"froid":/high temperature|overheat/i.test(t)?"chaleur":"anormale"));}
+    else if(/Entering Armistice Zone/i.test(t)){G.arm=true;push(ts,"zone","Entrée en zone d'armistice");}
     else if(/Leaving Armistice Zone/i.test(t)){G.arm=false;push(ts,"zone","Sortie de la zone d'armistice");}
     else if((m=t.match(/Entered (.+?) Jurisdiction/i))){G.jur=m[1];push(ts,"zone","Juridiction : "+m[1]);}
     else if(/Entered Monitored Space/i.test(t)){G.mon=true;push(ts,"zone","Espace surveillé");}
     else if(/Left Monitored Space|Exited Monitored Space/i.test(t)){G.mon=false;push(ts,"zone","Hors espace surveillé");}
-    else if(/CrimeStat Rating Increased/i.test(t)){G.crime++;push(ts,"crime","CrimeStat en hausse");}
+    else if(/CrimeStat Rating Increased/i.test(t)){G.crime++;sess(ts,"crime");push(ts,"crime","CrimeStat en hausse");}
     else if(/CrimeStat Rating (Decreased|Cleared)/i.test(t)){push(ts,"crime","CrimeStat en baisse");}
-    else if((m=t.match(/You have joined channel '(.+?)\s*:\s*[^']*'/i))){G.ship=norm(m[1]);G.shipAt=ts;G.pilot=true;push(ts,"ship","Montée à bord : "+G.ship);}
-    else if((m=t.match(/You have left channel '(.+?)\s*:\s*[^']*'/i))){push(ts,"ship","Descente de : "+norm(m[1]));if(G.ship===norm(m[1])){G.ship=null;G.pilot=false;}}
+    else if((m=t.match(/You have joined channel '(.+?)\s*:\s*[^']*'/i))){G.ship=norm(m[1]);G.shipAt=ts;G.pilot=true;push(ts,"ship","Montée à bord : "+G.ship);sess(ts,"ship",G.ship);}
+    else if((m=t.match(/You have left channel '(.+?)\s*:\s*[^']*'/i))){push(ts,"ship","Descente de : "+norm(m[1]));if(G.ship===norm(m[1]))G.pilot=false;}
     else if(/^Medical Bed/i.test(t)){G.med++;push(ts,"med","Lit médical : santé restaurée");}
     else if(hasMission){push(ts,"mission","Mission : "+t.slice(0,140),{mission:mission,objective:objective});}
+    else if(/^[A-Za-z&'\- ]{3,45}:\s+\S.{50,}$/.test(t)){/* conseil d'aide du jeu : ignoré */}
     else if(t.length>2){push(ts,"notif","Message de bord : "+t.slice(0,140));}
   }
 
@@ -3939,18 +4122,31 @@ window.AMBIANCE={
     if(pendingN){var c=b.match(/^(.*)"\s*\[\d+\]\s*to queue\..*?MissionId:\s*\[([^\]]*)\],\s*ObjectiveId:\s*\[([^\]]*)\]/);var p=pendingN;pendingN=null;if(c){notif(p.text+" "+c[1],c[2],c[3],p.ts);return;}}
     var x;
     if(/\[SeekerPC\]/.test(b)){
-      if(/ hb\b|hello|newlog/.test(b)&&ts>Date.now()-200000)G.pcAt=ts;
+      if(/ hb\b|hello|newlog/.test(b)&&ts>Date.now()-1800000)G.pcAt=ts;
       if(/\bbye\b/.test(b))G.pcAt=0;
-      if(/newlog/.test(b)){G.ship=null;G.pilot=false;}
+      if(/newlog/.test(b)){G.ship=null;G.pilot=false;closeCur(ts);}
       return;}
     if(/\[Seeker\] ping/.test(b)){if(testing)testDone(true);return;}
-    if(/Log started on/.test(b)){G.sStart=ts;G.sEnd=0;G.ship=null;G.pilot=false;G.arm=null;G.jur=null;G.loc=null;push(ts,"session","Session de jeu ouverte");return;}
-    if(/<SystemQuit>/.test(b)){G.sEnd=ts;G.ship=null;G.pilot=false;push(ts,"session","Session de jeu fermée");return;}
+    if(/Log started on/.test(b)){closeCur(ts);G.cur=newCur(ts);G.sStart=ts;G.sEnd=0;G.ship=null;G.pilot=false;G.arm=null;G.jur=null;G.loc=null;push(ts,"session","Session de jeu ouverte");return;}
+    if(/<SystemQuit>/.test(b)){closeCur(ts);G.sEnd=ts;G.ship=null;G.pilot=false;push(ts,"session","Session de jeu fermée");return;}
     if(/<Join PU>/.test(b)){x=b.match(/shard\[([^\]]+)\]/);G.shard=x?x[1]:null;push(ts,"session","Connexion à l'univers persistant");return;}
     if((x=b.match(/<RequestLocationInventory>.*?Location\[([^\]]+)\]/))){setLoc(x[1],ts);return;}
-    if((x=b.match(/<Vehicle Control Flow>.*?ClearDriver.*?for '([^']+)'/))){var nm=x[1].replace(/_\d{6,}$/,"").replace(/_/g," ");G.pilot=false;push(ts,"ship","Quitte le poste de pilotage : "+nm);return;}
+    if((x=b.match(/<Vehicle Control Flow>.*?ClearDriver.*?for '([^']+)'/))){var nm=shipName(x[1]);G.pilot=false;push(ts,"ship","Quitte le poste de pilotage : "+nm);return;}
     if((x=b.match(/Added notification "([^"]*)$/))){pendingN={text:x[1],ts:ts};return;}
     if((x=b.match(/Added notification "(.*)"\s*\[\d+\]\s*to queue.*?MissionId:\s*\[([^\]]*)\],\s*ObjectiveId:\s*\[([^\]]*)\]/))){notif(x[1],x[2],x[3],ts);return;}
+    if(/<Quantum Drive Arrived - Arrived at Final Destination>/.test(b)){G.route=null;sess(ts,"qt");push(ts,"quantum","Saut quantique terminé : destination atteinte");return;}
+    if((x=b.match(/<MissionEnded>.*mission_id\s+([0-9a-f-]{36}).*mission_state\s+MISSION_STATE_(\w+)/))){var st=x[2].toUpperCase(),ok=/COMPLETE/.test(st),bad=/FAIL/.test(st),res=ok?"terminée":bad?"échouée":/ABANDON|CANCEL/.test(st)?"abandonnée":"terminée";
+      capWrite(x[1],G.miss&&G.miss.name,{statut:ok?"atteint":"abandonné",detail:ok?"Contrat terminé":bad?"Contrat échoué":"Contrat abandonné"},ts);
+      if(G.miss){var mn=G.miss.name;G.miss=null;push(ts,"mission","Mission "+res+(mn?" : "+mn:""));sess(ts,"mres",{n:(mn||"").slice(0,80),r:res});}return;}
+    if((x=b.match(/<EndMission>.*MissionId\[([0-9a-f-]{36})\].*CompletionType\[(\w+)\]/))){var okE=/^Complete/i.test(x[2]);
+      capWrite(x[1],G.miss&&G.miss.name,{statut:okE?"atteint":"abandonné",detail:okE?"Contrat terminé":(/fail/i.test(x[2])?"Contrat échoué":"Contrat abandonné")},ts);
+      if(!okE&&G.miss){var mn2=G.miss.name,fl2=/fail/i.test(x[2]);G.miss=null;push(ts,"mission",(fl2?"Mission échouée":"Mission abandonnée")+(mn2?" : "+mn2:""));sess(ts,"mres",{n:(mn2||"").slice(0,80),r:fl2?"échouée":"abandonnée"});}return;}
+    if((x=b.match(/<CLocalMissionPhaseMarker::CreateMarker>.*contract \[([^\]]+)\]/))){var ck=contractKind(x[1]);if(ck){if(G.miss&&ts-G.miss.at<120000)G.miss.kind=ck;else G.pk={k:ck,t:ts};}return;}
+    if((x=b.match(/<Player Selected Quantum Target - Local>.*selected point (\S+) as their destination/))||(x=b.match(/<Player Requested Fuel to Quantum Target - Server Routing>.*destination (\S+)/))){var qd=questDest(x[1]);G.route={dest:qd,raw:x[1],t:ts};push(ts,"route","Route tracée : "+qd);return;}
+    if(/<SetSalvageRepairAmmoCount_NoTarget>/.test(b)){G.salv=ts;sess(ts,"salv");push(ts,"salvage","Faisceau de récupération en action");return;}
+    if(/Freight Inventory Grid Requesting/.test(b)){push(ts,"cargo","Inventaire de fret / entrepôt ouvert");return;}
+    if((x=b.match(/<StoreItem>.*Class\[([^\]]+)\]/))){sess(ts,"item");push(ts,"item","Objet rangé : "+prettyItem(x[1]));return;}
+    if((x=b.match(/<EquipItem>.*Class\[([^\]]+)\]/))){push(ts,"item","Objet pris en main / équipé : "+prettyItem(x[1]));return;}
     /* formats connus de la communauté, non encore vus sur ce PC : prudents */
     if((x=b.match(/<Actor Death>.*?'([^']+)'\s*\[\d+\]\s*in zone '([^']*)'.*?killed by '([^']+)'/))){
       if(x[1]==="{ME}"){G.deaths++;push(ts,"death","Mort (tué par "+(x[3]==="{ME}"?"toi-même":x[3])+")");}
@@ -3962,9 +4158,9 @@ window.AMBIANCE={
 
   var dirty=null;
   function handle(msg){String(msg).split("\n").forEach(line);if(!dirty)dirty=setTimeout(function(){dirty=null;save();render();},250);}
-  function save(){s(K.st,JSON.stringify(G));}
+  function save(){s(K.st,JSON.stringify(G));if(G.cur&&G.cur.last)sessSave(G.cur);}
 
-  function pcOnline(){return G.pcAt&&Date.now()-G.pcAt<200000;}
+  function pcOnline(){return G.pcAt&&Date.now()-G.pcAt<1800000;}
   function playing(){return G.sStart&&!G.sEnd&&Date.now()-Math.max(G.sStart,(G.ev[0]&&G.ev[0].t)||0)<6*3600000;}
   function summary(){var o=[];if(G.loc)o.push(G.loc);if(G.ship&&G.pilot)o.push("à bord : "+G.ship);if(G.arm)o.push("zone d'armistice");return o.join(" · ");}
 
@@ -3978,6 +4174,7 @@ window.AMBIANCE={
     else txt="Relais en attente…";
     if(st)st.textContent=txt;
     if(strip){var live=code&&g(K.on,"1")==="1"&&pcOnline();strip.textContent=live?("📡 "+(playing()&&summary()?summary():"PC connecté, en attente du jeu")):"";strip.style.display=live?"":"none";}
+    var ls=$("sk-linkstats");if(ls){var ct=careerText();ls.textContent=ct;ls.style.display=ct?"":"none";}
     if(lg){lg.innerHTML="";G.ev.slice(0,25).forEach(function(e){var d=document.createElement("div");d.textContent=ago(e.t)+" — "+e.x;lg.appendChild(d);});}
   }
 
@@ -3989,6 +4186,9 @@ window.AMBIANCE={
     if(G.sEnd&&!playing())o.push("- La session de jeu est fermée ("+ago(G.sEnd)+").");
     if(G.loc)o.push("- Position : "+G.loc+" ("+ago(G.locAt)+")");
     if(G.jur)o.push("- Juridiction : "+G.jur);
+    if(G.miss&&(G.miss.name||G.miss.obj))o.push("- Contrat en cours : "+(G.miss.name||"(sans nom)")+(G.miss.kind?" ["+G.miss.kind+"]":"")+(G.miss.obj?" — objectif : "+G.miss.obj:""));
+    if(G.route&&Date.now()-G.route.t<45*60000)o.push("- Dernière route / destination quantique choisie : "+G.route.dest+" ("+ago(G.route.t)+")");
+    if(G.salv&&Date.now()-G.salv<10*60000)o.push("- Faisceau de récupération utilisé ("+ago(G.salv)+")");
     if(G.arm===true)o.push("- Zone d'armistice : oui (combat interdit)");else if(G.arm===false)o.push("- Hors zone d'armistice");
     if(G.ship)o.push("- Vaisseau : "+G.ship+(G.pilot?" (Exo à bord)":" (Exo a quitté le poste de pilotage, peut-être plus à bord)")+" ("+ago(G.shipAt)+")");
     o.push("- Cette session : "+G.med+" passage(s) au lit médical, "+G.crime+" hausse(s) de CrimeStat, "+G.deaths+" mort(s), "+G.kills+" élimination(s)");
@@ -4029,9 +4229,11 @@ window.AMBIANCE={
     var cp=$("sk-linkcopy");if(cp)cp.onclick=function(){var c=g(K.code,"");if(!c){$("sk-linkstat").textContent="Génère d'abord un code.";return;}
       var cmd="powershell -ExecutionPolicy Bypass -File .\\seeker-pc.ps1 -Code "+c;var done=function(ok){cp.textContent=ok?"Commande copiée ✓":"Copie impossible";setTimeout(function(){cp.textContent="Copier la commande PC";},3000);};
       try{navigator.clipboard.writeText(cmd).then(function(){done(true);},function(){done(false);});}catch(_){done(false);}};
+    var cmb=$("sk-comment");if(cmb){cmb.checked=g(K.cm,"1")==="1";cmb.onchange=function(){s(K.cm,cmb.checked?"1":"0");};}
+    var cdl=$("sk-cdelay");if(cdl){cdl.value=g(K.cd,"10");cdl.onchange=function(){s(K.cd,cdl.value);};}
     var tb=$("sk-linktest");if(tb)tb.onclick=test;
     var rs=$("sk-linkreset");if(rs)rs.onclick=function(){if(!confirm("Effacer le journal de session et l'état du jeu ?"))return;var keep=G.pcAt;for(var k in G){if(Array.isArray(G[k]))G[k]=[];else if(typeof G[k]==="number")G[k]=0;else if(typeof G[k]==="boolean")G[k]=false;else G[k]=null;}G.pcAt=keep;G.arm=null;save();render();};
-    render();connect();setInterval(render,20000);
+    render();updateMap();connect();watchHangar();renderChips();setInterval(function(){render();updateMap();renderChips();markHangar();},20000);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",wire);else wire();
 })();
