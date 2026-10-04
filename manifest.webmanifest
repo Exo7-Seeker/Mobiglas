@@ -1,0 +1,29 @@
+{
+ "name": "mobiGlas · Exo",
+ "short_name": "mobiGlas",
+ "description": "Journal de bord, carte et Seeker, l'IA d'Exo.",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "display_override": [
+  "standalone"
+ ],
+ "orientation": "portrait",
+ "background_color": "#020a10",
+ "theme_color": "#061b26",
+ "lang": "fr",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any maskable"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any maskable"
+  }
+ ]
+}

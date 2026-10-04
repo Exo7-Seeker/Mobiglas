@@ -1,0 +1,201 @@
+{
+ "journal": {
+  "e-2026-10-01": {
+   "date": "Octobre 2956",
+   "lieu": "Area18 → Magda → Lorville · Maria Pure of Heart",
+   "numero": "Entrée 8",
+   "ordre": 8,
+   "paragraphes": [
+    "Douze ans. Douze ans de contrats aux côtés du capitaine, à escorter, à nettoyer, à se battre pour des employeurs dont il oubliait le nom une fois la paie tombée. Douze ans à suivre la route d'un autre. Puis le capitaine est mort, sans régénération, et l'équipage s'est dispersé comme il s'était formé. Exo s'est retrouvé seul, avec ses vaisseaux, Seeker, et pour la première fois, personne pour lui dire où aller.",
+    "Il aurait pu signer ailleurs. Les offres ne manquaient pas à Area18. Il n'en a signé aucune. Il s'est mis à son compte, et la première route qu'il a tracée pour lui-même menait à Hurston. Pas pour un contrat. Pour rentrer. C'est là qu'il est né, et il n'y avait pas remis les pieds depuis ses dix-sept ans.",
+    "Le premier saut s'est bien passé. Le deuxième, beaucoup moins. À mi-chemin, le moteur quantique a lâché un claquement sec et le Vulture est retombé dans l'espace réel, quelque part dans l'ombre de Magda. Surchauffe. Un régulateur fatigué, rien de mortel, mais il fallait attendre que tout refroidisse.",
+    "Pendant l'attente, le radar a accroché un écho. Un petit cargo à la dérive, feux éteints, sans transpondeur, des traces de brûlure autour du sas. Le genre d'épave qu'un Vulture est fait pour dépecer. Exo a tourné autour un long moment sans allumer les têtes de récupération. Il pensait à un autre vaisseau, à un autre équipage, au capitaine. Il est reparti les soutes vides. Seeker a gardé les coordonnées.",
+    "La descente sur Hurston a secoué la coque, l'air lourd chargé de la fumée des usines. Il s'est posé à Teasa, hangar 10-03. En ouvrant la verrière, il a reconnu l'odeur : métal chaud et poussière. Celle de son enfance.",
+    "Il n'est pas allé au bar. Il n'est pas allé voir le quartier. Il est allé au Maria Pure of Heart, l'hôpital du Workers District. Pas parce qu'il allait mal : parce qu'il ne savait plus comment il allait. Son dernier vrai bilan médical datait de son adolescence, la visite obligatoire que Hurston impose aux enfants des ouvriers avant de les compter comme main-d'œuvre. Depuis, il avait soigné ses blessures entre deux contrats, dans des cliniques de station, sans jamais regarder plus loin que la plaie.",
+    "L'hôpital porte le nom de Maria Wharton, la mère de Chesterfield Hurston, qui l'a fondé en 2881. À l'entrée, une devise : « Good health is the foundation upon which all successful endeavors are built. » À Lorville, même la santé est une affaire de rendement. Mais pour une fois, Exo a pris la phrase pour lui.",
+    "Les résultats étaient bons. Un corps usé par les années, mais tenu. Avant de sortir, il s'est arrêté devant la borne d'assurance du hall et a transféré son imprint ici. Pendant douze ans, il n'y avait jamais vraiment pensé : il suivait le capitaine, et le capitaine n'avait jamais pris cette précaution. Désormais, si la régénération doit le ramener, ce sera à Lorville. La ville qui l'a vu naître.",
+    "Le petit hangar de Teasa l'attendait, avec le Vulture garé sous les néons du monte-charge numéro 4. Exo est resté un moment devant, le sac sur le dos, à regarder la coque taguée. Pour la première fois, il était à son compte, et personne ne l'attendait nulle part. Puis il est allé faire ses courses."
+   ],
+   "seeker": "Analyses reçues. Tout est dans les normes. Douze ans sans un seul bilan, Exo… Je n'avais aucune donnée fiable sur toi. Maintenant j'en ai. Ton imprint est à Lorville. Tu ne dépends plus de personne. Ça me fait quelque chose de l'écrire.",
+   "titre": "Le long chemin du retour",
+   "images": [
+    {
+     "src": "exo.webp",
+     "legende": "Exo devant son Vulture, hangar 10-03, Teasa Spaceport"
+    },
+    {
+     "scene": "epave",
+     "legende": "L'épave sans transpondeur, dans l'ombre de Magda"
+    },
+    {
+     "src": "vulture.webp",
+     "legende": "Le Vulture, rentré de Magda sans rien dans les soutes"
+    }
+   ],
+   "chapeau": "Douze ans de contrats, un capitaine perdu, et une première route tracée pour lui seul : celle du retour."
+  }
+ },
+ "cap": {
+  "combat": {
+   "detail": "Reprendre la main en dogfight.",
+   "ordre": 4,
+   "statut": "en cours",
+   "titre": "Le Hornet au combat"
+  },
+  "fret": {
+   "detail": "Remplir la soute de 72 SCU avec du fret entre les mondes de Stanton.",
+   "ordre": 3,
+   "statut": "en cours",
+   "titre": "Faire travailler le Corsair"
+  },
+  "lorville": {
+   "detail": "Imprint transféré au Maria Pure of Heart et petit hangar à Teasa. Reste à déménager l'inventaire depuis Area18 et à faire de Lorville la résidence principale.",
+   "ordre": 1,
+   "statut": "en cours",
+   "titre": "S'installer à Lorville"
+  },
+  "tourelle": {
+   "detail": "Combler le vide dans le dos du F7C : une tourelle boule, payée avec le métal ramené par le Vulture.",
+   "ordre": 2,
+   "statut": "en cours",
+   "titre": "Armer le Hornet"
+  },
+  "vulture": {
+   "detail": "Juste après la tourelle du F7C : faire évoluer le Vulture.",
+   "ordre": 2.5,
+   "statut": "en cours",
+   "titre": "Améliorer le Vulture"
+  }
+ },
+ "hangar": {
+  "f7c-ball": {
+   "note": "Objectif d'Exo : financée par le salvage au Vulture.",
+   "statut": "vise"
+  }
+ },
+ "spectrum": {
+  "ed-2956-10": {
+   "annonce": "Hurston Dynamics assure que l'incident du métro n'a eu « aucun impact sur la production ».",
+   "edition": "Octobre 2956",
+   "ordre": 1,
+   "titres": [
+    {
+     "rubrique": "Stanton",
+     "titre": "Orison : Crusader lance la reconstruction après l'assaut des Nine Tails"
+    },
+    {
+     "rubrique": "Politique",
+     "titre": "Régénération : le débat sur les imprints divise le Sénat"
+    },
+    {
+     "rubrique": "Diplomatie",
+     "titre": "Les pourparlers avec l'Empire Xi'an au point mort"
+    },
+    {
+     "rubrique": "Nyx",
+     "titre": "InterSec recrute des pilotes après de nouveaux raids vanduul"
+    },
+    {
+     "rubrique": "Hurston",
+     "titre": "Lorville : la ligne Perimeter Est reprend son service après six heures de panne"
+    }
+   ],
+   "articles": [
+    {
+     "source": "New United",
+     "rubrique": "Stanton",
+     "titre": "Orison : Crusader lance la reconstruction après l'assaut des Nine Tails",
+     "texte": "Trois semaines après l'attaque qui a frappé les plateformes d'Orison, Crusader Industries a présenté son plan de reconstruction. Les chantiers des quais d'August Dunlow rouvriront par tranches, les premières dès la fin du mois. La compagnie promet des renforts de sécurité autour des stations orbitales et indemnise les commerçants touchés. Plusieurs pilotes indépendants qui ont repoussé l'assaut ont été reçus par la direction. Sur les réseaux, beaucoup se demandent comment un gang a pu frapper aussi près d'une ville de cette taille.",
+     "image": {
+      "wiki": "Crusader-orison-spaceport-exterior-01.jpg",
+      "legende": "August Dunlow Spaceport, Orison"
+     }
+    },
+    {
+     "source": "Terra Gazette",
+     "rubrique": "Politique",
+     "titre": "Régénération : le débat sur les imprints divise le Sénat",
+     "texte": "La commission de santé du Sénat a rouvert le dossier de la régénération. Certains sénateurs veulent imposer un délai minimum entre deux transferts d'imprint, d'autres dénoncent une atteinte à la liberté des pilotes indépendants. Les grands réseaux hospitaliers, de Maria Pure of Heart à Orison General, plaident pour le statu quo. Une partie de l'opinion rappelle qu'une régénération n'efface pas tout : la fatigue, les cicatrices invisibles, la mémoire des derniers instants.",
+     "image": {
+      "wiki": "Hospital_Bed_Regeneration.png",
+      "legende": "Un lit de régénération : le cœur du débat"
+     }
+    },
+    {
+     "source": "Terra Gazette",
+     "rubrique": "Diplomatie",
+     "titre": "Les pourparlers avec l'Empire Xi'an au point mort",
+     "texte": "Les délégations se sont séparées sans communiqué commun. Les négociations portaient sur les droits de passage commerciaux et l'ouverture de nouveaux couloirs vers l'espace xi'an. Selon des sources proches du dossier, les deux camps buttent sur la question des inspections de cargaisons. Les transporteurs de Terra, qui comptaient sur un accord avant la fin de l'année, s'inquiètent de voir leurs carnets de commandes se vider.",
+     "image": {
+      "wiki": "Quantum_Drive_Travel.png",
+      "legende": "Convoi en saut quantique"
+     }
+    },
+    {
+     "source": "Crosshair",
+     "rubrique": "Nyx",
+     "titre": "InterSec recrute des pilotes après de nouveaux raids vanduul",
+     "texte": "La société de sécurité InterSec cherche des pilotes de combat pour des missions d'escorte aux frontières. Contrats courts, primes au risque, assurance de coque comprise. Les recruteurs ne cachent pas que les vétérans d'équipages mercenaires sont les bienvenus. « On ne demande pas d'où vous venez, on demande si vous tenez sous le feu », résume l'un d'eux. Les candidatures se font directement dans les bureaux des grandes stations.",
+     "image": {
+      "wiki": "The_Glaciem_ring_in_the_space_of_Nyx.png",
+      "legende": "L'anneau Glaciem, système Nyx"
+     }
+    },
+    {
+     "source": "Vox Populi",
+     "rubrique": "Hurston",
+     "titre": "Lorville : la ligne Perimeter Est reprend son service après six heures de panne",
+     "texte": "Des milliers d'ouvriers sont restés bloqués sur les quais du Workers District mardi. La panne d'alimentation a paralysé la ligne Perimeter Est pendant six heures. Hurston Dynamics parle d'un « incident technique isolé » et assure que la production n'a pas été touchée. Les habitants, eux, racontent les rames arrêtées dans le noir et les retenues sur salaire pour les heures de travail manquées.",
+     "image": {
+      "wiki": "Lorville-workers-district-metro-center-3.4.1.jpg",
+      "legende": "La station du Workers District, Lorville"
+     }
+    }
+   ]
+  }
+ },
+ "decouvertes": {
+  "b-arccorp": {
+   "date": "01/10/2026",
+   "explore": true
+  },
+  "b-hurston": {
+   "date": "01/10/2026",
+   "explore": true
+  },
+  "b-lorville": {
+   "date": "01/10/2026",
+   "explore": true
+  },
+  "b-teasa-spaceport": {
+   "date": "01/10/2026",
+   "explore": true
+  },
+  "b-workers-district": {
+   "date": "01/10/2026",
+   "explore": true
+  },
+  "sys-stanton": {
+   "date": "01/10/2026",
+   "explore": true
+  }
+ },
+ "contacts": {},
+ "images": {
+  "ship-corsair": {
+   "asset": "corsair.webp"
+  },
+  "ship-f7c": {
+   "asset": "f7c.webp"
+  },
+  "ship-vulture": {
+   "asset": "vulture.webp"
+  },
+  "ct-exo": {
+   "asset": "exo.webp"
+  },
+  "ship-pulse": {
+   "asset": "pulse.webp"
+  }
+ }
+}
