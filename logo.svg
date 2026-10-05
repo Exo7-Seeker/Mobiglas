@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+<linearGradient id="k-space" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#06050d"/><stop offset=".55" stop-color="#1a1230"/><stop offset="1" stop-color="#4a2436"/></linearGradient>
+<radialGradient id="k-gas" cx="24%" cy="18%" r="92%"><stop offset="0" stop-color="#fff3e4"/><stop offset=".15" stop-color="#f8cdaa"/><stop offset=".4" stop-color="#d48a72"/><stop offset=".7" stop-color="#6e3442"/><stop offset="1" stop-color="#1e0c18"/></radialGradient>
+<radialGradient id="k-sun" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffffff"/><stop offset=".1" stop-color="#fff2d8"/><stop offset=".35" stop-color="#ffc26a" stop-opacity=".55"/><stop offset="1" stop-color="#ff9f2e" stop-opacity="0"/></radialGradient>
+<linearGradient id="k-rock" x1=".1" y1=".1" x2=".9" y2=".9"><stop offset="0" stop-color="#c49478"/><stop offset=".35" stop-color="#4c3836"/><stop offset="1" stop-color="#120a0c"/></linearGradient>
+<linearGradient id="k-top" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a221c"/><stop offset=".7" stop-color="#14100d"/><stop offset="1" stop-color="#0a0806"/></linearGradient>
+<linearGradient id="k-strutL" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0c0a08"/><stop offset=".65" stop-color="#2a221b"/><stop offset="1" stop-color="#4a3a2a"/></linearGradient>
+<linearGradient id="k-strutR" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#0c0a08"/><stop offset=".65" stop-color="#261f19"/><stop offset="1" stop-color="#3e3226"/></linearGradient>
+<linearGradient id="k-dash" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2e22"/><stop offset=".1" stop-color="#1e1812"/><stop offset="1" stop-color="#070504"/></linearGradient>
+<linearGradient id="k-amber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffcf7a"/><stop offset=".5" stop-color="#f29a2e"/><stop offset="1" stop-color="#8a4a10"/></linearGradient>
+<radialGradient id="k-crt" cx="50%" cy="45%" r="65%"><stop offset="0" stop-color="#ffb24a"/><stop offset=".6" stop-color="#b8620e"/><stop offset="1" stop-color="#4a2406"/></radialGradient>
+<radialGradient id="k-helm" cx="36%" cy="30%" r="70%"><stop offset="0" stop-color="#4a5058"/><stop offset=".35" stop-color="#1a1d22"/><stop offset="1" stop-color="#040506"/></radialGradient>
+<radialGradient id="k-lamp" cx="45%" cy="40%" r="60%"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#fff1d4"/><stop offset="1" stop-color="#c8a070"/></radialGradient>
+<pattern id="k-haz" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="14" fill="#ffb347"/><rect x="7" width="7" height="14" fill="#2a1a0a"/></pattern>
+<filter id="k-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="k-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="12"/></filter>
+<clipPath id="k-clip"><rect width="512" height="512" rx="112"/></clipPath>
+<clipPath id="k-gc"><circle cx="350" cy="330" r="220"/></clipPath>
+</defs>
+<g clip-path="url(#k-clip)">
+<!-- espace et Crusader -->
+<rect width="512" height="512" fill="url(#k-space)"/>
+<g fill="#f6eaff"><circle cx="80" cy="110" r="1.3"/><circle cx="150" cy="86" r="1"/><circle cx="210" cy="130" r="1.2"/><circle cx="60" cy="200" r="1"/><circle cx="420" cy="96" r="1.1"/></g>
+<circle cx="350" cy="330" r="236" fill="#ffb59a" opacity=".4" filter="url(#k-soft)"/>
+<circle cx="350" cy="330" r="220" fill="url(#k-gas)"/>
+<g clip-path="url(#k-gc)" fill="none" stroke-linecap="round">
+<path d="M120 230 Q300 150 580 170" stroke="#fff4e6" stroke-opacity=".3" stroke-width="10"/>
+<path d="M130 268 Q310 196 590 212" stroke="#8a3e46" stroke-opacity=".35" stroke-width="12"/>
+<path d="M140 310 Q320 240 600 258" stroke="#fff0dc" stroke-opacity=".2" stroke-width="7"/>
+<path d="M300 200 q30 -10 60 -2" stroke="#ffffff" stroke-opacity=".35" stroke-width="5"/>
+<ellipse cx="420" cy="230" rx="22" ry="10" fill="#a0505a" fill-opacity=".35" stroke="none"/>
+</g>
+<circle cx="350" cy="330" r="221" fill="none" stroke="#ffe7d2" stroke-width="3"/>
+<circle cx="178" cy="150" r="76" fill="url(#k-sun)"/>
+<path d="M178 96 L182 146 L236 150 L182 154 L178 204 L174 154 L120 150 L174 146 Z" fill="#ffffff"/>
+<!-- astéroïdes de la ceinture de Yela -->
+<g stroke="#0a0506" stroke-width="2" stroke-linejoin="round">
+<path d="M70 150 L96 136 L122 146 L126 170 L106 186 L78 182 L64 166 Z" fill="url(#k-rock)"/>
+<path d="M392 104 L412 94 L432 102 L434 120 L418 130 L398 126 Z" fill="url(#k-rock)"/>
+<path d="M120 230 L134 224 L146 230 L144 244 L128 246 Z" fill="url(#k-rock)"/>
+</g>
+<g fill="none" stroke="#ffd2a8" stroke-linecap="round" opacity=".85"><path d="M70 150 L96 136 L122 146" stroke-width="2.5"/><path d="M392 104 L412 94 L432 102" stroke-width="2"/></g>
+<!-- vitres latérales légèrement teintées -->
+<path d="M-10 40 L52 44 L206 330 L-10 330 Z" fill="#05030a" opacity=".42"/>
+<path d="M522 40 L460 44 L306 330 L522 330 Z" fill="#05030a" opacity=".42"/>
+<!-- reflets sur les vitres -->
+<path d="M70 70 L120 70 L60 190 L30 190 Z" fill="#ffffff" opacity=".04"/>
+<path d="M392 60 L440 60 L476 130 L450 130 Z" fill="#ffffff" opacity=".04"/>
+<!-- armature de la verrière -->
+<g stroke="#060403" stroke-width="3" stroke-linejoin="round">
+<path d="M-10 -10 H522 V50 Q256 28 -10 50 Z" fill="url(#k-top)"/>
+<path d="M-10 176 L-10 206 L178 316 L164 286 Z" fill="url(#k-strutL)"/>
+<path d="M522 176 L522 206 L334 316 L348 286 Z" fill="url(#k-strutR)"/>
+<path d="M30 40 L66 42 L222 330 L184 330 Z" fill="url(#k-strutL)"/>
+<path d="M482 40 L446 42 L290 330 L328 330 Z" fill="url(#k-strutR)"/>
+<path d="M156 276 L186 270 L196 318 L168 324 Z" fill="#2e251c"/>
+<path d="M356 276 L326 270 L316 318 L344 324 Z" fill="#2e251c"/>
+</g>
+<path d="M-10 50 Q256 28 522 50" fill="none" stroke="#ffb347" stroke-opacity=".5" stroke-width="2.5"/>
+<path d="M66 44 L222 328" stroke="#9fe6ff" stroke-opacity=".55" stroke-width="2.5"/>
+<path d="M446 44 L290 328" stroke="#ffc286" stroke-opacity=".5" stroke-width="2.5"/>
+<path d="M-10 178 L164 287" stroke="#ffc286" stroke-opacity=".35" stroke-width="2"/>
+<path d="M522 178 L348 287" stroke="#ffc286" stroke-opacity=".35" stroke-width="2"/>
+<g fill="#4a3a2a"><rect x="150" y="12" width="40" height="16" rx="3"/><rect x="322" y="12" width="40" height="16" rx="3"/><circle cx="96" cy="100" r="3"/><circle cx="130" cy="164" r="3"/><circle cx="164" cy="228" r="3"/><circle cx="416" cy="100" r="3"/><circle cx="382" cy="164" r="3"/><circle cx="348" cy="228" r="3"/><circle cx="176" cy="285" r="3.5"/><circle cx="182" cy="306" r="3.5"/><circle cx="336" cy="285" r="3.5"/><circle cx="330" cy="306" r="3.5"/></g>
+<!-- hologramme de la tourelle (en haut à gauche) -->
+<g filter="url(#k-glow)" opacity=".9"><path d="M98 76 Q130 64 160 76 L162 124 Q130 136 98 124 Z" fill="#ffb347" fill-opacity=".14" stroke="#ffb347" stroke-width="2"/><path d="M130 82 L136 98 L148 103 L136 108 L130 122 L124 108 L112 103 L124 98 Z" fill="#ffc46a"/></g>
+<!-- tableau de bord -->
+<path d="M-10 322 Q256 300 522 322 V522 H-10 Z" fill="url(#k-dash)" stroke="#060403" stroke-width="3"/>
+<path d="M-10 322 Q256 300 522 322" fill="none" stroke="#7a5a36" stroke-width="2"/>
+<!-- petits afficheurs holo au-dessus de la console -->
+<g filter="url(#k-glow)">
+<rect x="196" y="282" width="34" height="24" rx="2" fill="#ffb347" fill-opacity=".14" stroke="#ffb347" stroke-width="1.5"/>
+<rect x="236" y="282" width="34" height="24" rx="2" fill="#ffb347" fill-opacity=".14" stroke="#ffb347" stroke-width="1.5"/>
+<rect x="420" y="276" width="44" height="22" rx="2" fill="#ff4a3a" fill-opacity=".18" stroke="#ff6a4a" stroke-width="1.5"/>
+<rect x="420" y="302" width="44" height="18" rx="2" fill="#ff4a3a" fill-opacity=".12" stroke="#ff6a4a" stroke-width="1.2"/>
+</g>
+<g fill="#ffc46a"><rect x="201" y="288" width="22" height="4"/><rect x="204" y="296" width="14" height="3"/><rect x="241" y="288" width="24" height="4"/><rect x="246" y="296" width="14" height="3"/></g>
+<g fill="#ff7a5a"><rect x="428" y="283" width="28" height="5"/><rect x="430" y="308" width="24" height="3"/></g>
+<!-- 1. phare et bandes de danger -->
+<rect x="6" y="330" width="78" height="150" rx="8" fill="#211a14" stroke="#060403" stroke-width="2"/>
+<circle cx="44" cy="366" r="25" fill="#3a2e22" stroke="#060403" stroke-width="2"/>
+<circle cx="44" cy="366" r="18" fill="url(#k-lamp)" filter="url(#k-glow)"/>
+<rect x="18" y="402" width="52" height="30" rx="3" fill="url(#k-haz)" stroke="#060403" stroke-width="2"/>
+<path d="M30 446 L44 470 H16 Z" fill="none" stroke="#c98a2e" stroke-width="2.5"/>
+<!-- 2. gestion d'énergie -->
+<rect x="88" y="330" width="112" height="112" rx="6" fill="#2a2018" stroke="#060403" stroke-width="2"/>
+<rect x="96" y="338" width="96" height="84" rx="3" fill="#160c04" stroke="#ffb347" stroke-opacity=".7" stroke-width="1.5" filter="url(#k-glow)"/>
+<g fill="#ff4a3a"><rect x="100" y="342" width="9" height="6"/><rect x="132" y="342" width="9" height="6"/><rect x="164" y="342" width="9" height="6"/></g>
+<g fill="#ffb347"><rect x="111" y="343" width="16" height="4"/><rect x="143" y="343" width="16" height="4"/><rect x="175" y="343" width="13" height="4"/></g>
+<rect x="100" y="354" width="34" height="14" fill="none" stroke="#ff4a3a" stroke-width="1.5"/><rect x="104" y="358" width="14" height="6" fill="#ff8a5a"/>
+<g fill="#ffd23c"><rect x="140" y="374" width="16" height="6"/><rect x="140" y="382" width="16" height="6"/><rect x="140" y="390" width="16" height="6"/><rect x="140" y="398" width="16" height="6"/><rect x="186" y="380" width="4" height="24"/></g>
+<g fill="none" stroke="#7a4a14" stroke-width="1.5"><rect x="140" y="358" width="16" height="14"/></g>
+<path d="M170 360 L184 386 H156 Z" fill="none" stroke="#c9c2b0" stroke-width="2"/><rect x="169" y="368" width="2" height="9" fill="#c9c2b0"/>
+<g fill="#7a4a14"><rect x="102" y="378" width="30" height="3"/><rect x="102" y="386" width="24" height="3"/><rect x="102" y="394" width="28" height="3"/></g>
+<rect x="100" y="410" width="88" height="10" rx="1" fill="#ffd23c" filter="url(#k-glow)"/>
+<g fill="#3a2406"><rect x="112" y="413" width="22" height="4"/><rect x="138" y="413" width="38" height="4"/></g>
+<g fill="#3a2e22"><rect x="100" y="428" width="14" height="10" rx="2"/><rect x="118" y="428" width="14" height="10" rx="2"/><rect x="136" y="428" width="14" height="10" rx="2"/></g>
+<!-- 3. radar orbital (écran central) -->
+<rect x="206" y="314" width="94" height="112" rx="8" fill="#2a2018" stroke="#060403" stroke-width="2"/>
+<rect x="214" y="322" width="78" height="78" rx="4" fill="#120a04" stroke="#5a3a14" stroke-width="1.5"/>
+<g fill="none" stroke="#ff7a2a" filter="url(#k-glow)"><ellipse cx="253" cy="362" rx="34" ry="13" stroke-width="2"/><ellipse cx="253" cy="362" rx="22" ry="8" stroke-width="1.5"/><ellipse cx="253" cy="362" rx="10" ry="4" stroke-width="1.5" stroke="#ff4a3a"/></g>
+<circle cx="253" cy="362" r="2.5" fill="#ffd2a0"/>
+<path d="M219 362 H287" stroke="#7a3a10" stroke-width="1"/>
+<rect x="276" y="384" width="6" height="7" rx="1" fill="#ffb347"/>
+<g fill="#ff4a3a"><rect x="220" y="408" width="10" height="12" rx="1"/><rect x="234" y="408" width="10" height="12" rx="1"/></g>
+<g fill="#3a2e22"><rect x="252" y="408" width="14" height="12" rx="2"/><rect x="272" y="408" width="14" height="12" rx="2"/></g>
+<!-- 4. « prêt à scanner » sous Emoto -->
+<rect x="306" y="336" width="100" height="104" rx="6" fill="#2a2018" stroke="#060403" stroke-width="2"/>
+<rect x="314" y="344" width="84" height="46" rx="3" fill="#160c04" stroke="#ffb347" stroke-opacity=".6" stroke-width="1.5" filter="url(#k-glow)"/>
+<g fill="#ff7a3a"><path d="M320 364 l4 3 -4 3 z"/><path d="M392 364 l-4 3 4 3 z"/><rect x="332" y="365" width="48" height="4"/><rect x="340" y="380" width="32" height="3" fill="#ffb347"/></g>
+<rect x="314" y="396" width="84" height="38" rx="3" fill="#160c04" stroke="#5a3a14" stroke-width="1.2"/>
+<g fill="#ff7a3a"><rect x="318" y="401" width="40" height="3"/><rect x="320" y="410" width="14" height="3"/><rect x="320" y="418" width="14" height="3"/><rect x="320" y="426" width="14" height="3"/></g>
+<g fill="none" stroke="#ffb347" stroke-width="1.5"><circle cx="350" cy="411" r="3"/><circle cx="350" cy="419" r="3"/><circle cx="350" cy="427" r="3"/><path d="M372 408 l6 6 m0 -6 l-6 6 M372 416 l6 6 m0 -6 l-6 6 M372 424 l6 6 m0 -6 l-6 6"/></g>
+<!-- 5. écran multifonction (droite) -->
+<rect x="410" y="324" width="98" height="150" rx="8" fill="#2a2018" stroke="#060403" stroke-width="2"/>
+<rect x="418" y="332" width="84" height="134" rx="4" fill="#160c04" stroke="#ffb347" stroke-opacity=".6" stroke-width="1.5"/>
+<g fill="none" stroke="#ffb347" stroke-width="1.5" filter="url(#k-glow)"><rect x="422" y="337" width="17" height="10"/><rect x="442" y="337" width="17" height="10"/><rect x="462" y="337" width="17" height="10"/><rect x="482" y="337" width="17" height="10"/><rect x="422" y="350" width="17" height="10"/><rect x="442" y="350" width="17" height="10"/><rect x="462" y="350" width="17" height="10"/><rect x="482" y="350" width="17" height="10"/></g>
+<g fill="#ffb347"><rect x="425" y="341" width="11" height="2"/><rect x="445" y="341" width="11" height="2"/><rect x="465" y="341" width="11" height="2"/><rect x="485" y="341" width="11" height="2"/><rect x="425" y="354" width="11" height="2"/><rect x="445" y="354" width="11" height="2"/><rect x="465" y="354" width="11" height="2"/><rect x="485" y="354" width="11" height="2"/></g>
+<g fill="none" stroke="#ff9a3a" stroke-width="2.5" filter="url(#k-glow)"><path d="M432 380 Q426 410 440 440"/><path d="M488 380 Q494 410 480 440"/></g>
+<path d="M460 388 L470 404 L478 404 L478 426 L468 430 L460 446 L452 430 L442 426 L442 404 L450 404 Z" fill="#ffb347" fill-opacity=".85" filter="url(#k-glow)"/>
+<g fill="#ff9a3a"><rect x="424" y="372" width="14" height="4"/><rect x="482" y="372" width="14" height="4"/><rect x="452" y="452" width="16" height="4"/></g>
+<!-- clavier -->
+<rect x="150" y="452" width="212" height="44" rx="6" fill="#120e0b" stroke="#2c2218" stroke-width="2"/>
+<g fill="#5a4630"><rect x="160" y="460" width="14" height="10" rx="2"/><rect x="180" y="460" width="14" height="10" rx="2"/><rect x="200" y="460" width="14" height="10" rx="2"/><rect x="220" y="460" width="14" height="10" rx="2"/><rect x="240" y="460" width="14" height="10" rx="2"/><rect x="260" y="460" width="14" height="10" rx="2"/><rect x="280" y="460" width="14" height="10" rx="2"/><rect x="300" y="460" width="14" height="10" rx="2"/><rect x="320" y="460" width="14" height="10" rx="2"/><rect x="340" y="460" width="14" height="10" rx="2"/><rect x="170" y="476" width="170" height="10" rx="2"/></g>
+<!-- Emoto, posé sur la console de droite -->
+<g transform="translate(356 300) scale(.82) translate(-256 -300)">
+<path d="M222 340 L290 340 L296 352 L216 352 Z" fill="#2a2420" stroke="#060403" stroke-width="2"/>
+<circle cx="256" cy="346" r="2.5" fill="#ff4a3a"/>
+<rect x="238" y="314" width="36" height="28" rx="4" fill="#3c3a38" stroke="#060403" stroke-width="2"/>
+<rect x="246" y="320" width="20" height="14" rx="2" fill="#24221f"/>
+<circle cx="214" cy="306" r="9" fill="#ffb347" stroke="#5a3006" stroke-width="2"/>
+<circle cx="298" cy="306" r="9" fill="#ffb347" stroke="#5a3006" stroke-width="2"/>
+<path d="M216 300 Q256 330 296 300" fill="none" stroke="#c98a2e" stroke-width="7" stroke-linecap="round"/>
+<circle cx="256" cy="278" r="46" fill="url(#k-helm)" stroke="#060403" stroke-width="3"/>
+<path d="M216 262 A44 44 0 0 1 244 236" fill="none" stroke="#ffd59a" stroke-opacity=".8" stroke-width="4" stroke-linecap="round"/>
+<path d="M290 256 A44 44 0 0 1 300 290" fill="none" stroke="#ffb59a" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>
+<ellipse cx="238" cy="252" rx="12" ry="6" transform="rotate(-30 238 252)" fill="#ffffff" opacity=".55"/>
+<g filter="url(#k-glow)"><rect x="232" y="270" width="18" height="18" rx="3" fill="#7dffa8"/><rect x="262" y="270" width="18" height="18" rx="3" fill="#7dffa8"/></g>
+<g fill="#ffffff" opacity=".7"><rect x="235" y="273" width="6" height="5" rx="1"/><rect x="265" y="273" width="6" height="5" rx="1"/></g>
+</g>
+</g>
+</svg>
