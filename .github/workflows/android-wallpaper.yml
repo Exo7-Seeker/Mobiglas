@@ -1,0 +1,36 @@
+name: Fond d'écran 3D (APK Android)
+
+on:
+  push:
+    branches: [main]
+    paths: ['android-wallpaper/**', '.github/workflows/android-wallpaper.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Construire l'APK
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+        run: gradle -p android-wallpaper assembleRelease --no-daemon --stacktrace
+      - name: Publier
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android-wallpaper/app/build/outputs/apk/release/app-release.apk mobiglas-fond-3d.apk
+          gh release create "fond-ecran-v${{ github.run_number }}" mobiglas-fond-3d.apk \
+            --title "Fond d'écran 3D v${{ github.run_number }}" \
+            --notes "APK Android du fond d'écran animé en relief (mobiGlas Fond 3D). Installer, ouvrir, importer un fichier .cockpit3d, choisir la scène, Appliquer." \
+            --latest

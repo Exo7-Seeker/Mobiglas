@@ -1,0 +1,38 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'fr.exo.fond3d'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'fr.exo.fond3d'
+        minSdk 26
+        targetSdk 34
+        versionCode Integer.parseInt(System.getenv('VERSION_CODE') ?: '1')
+        versionName '1.' + (System.getenv('VERSION_CODE') ?: '0')
+    }
+
+    // clé de signature fixe (fichier fond3d.keystore à la racine du dossier) : chaque nouvelle version s'installe par-dessus l'ancienne
+    signingConfigs {
+        fixe {
+            storeFile rootProject.file('fond3d.keystore')
+            storePassword 'android'
+            keyAlias 'fond3d'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.fixe
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
