@@ -116,7 +116,7 @@ public class WallService extends WallpaperService {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences p, String key) {
             if (thread != null) thread.requestReload();
-            if ("scene".equals(key) && Build.VERSION.SDK_INT >= 27) { colorsFor = null; notifyColorsChanged(); }
+            if (("scene".equals(key) || "rev".equals(key)) && Build.VERSION.SDK_INT >= 27) { colorsFor = null; notifyColorsChanged(); }
         }
 
         /* Couleurs annoncées au système (icônes à thème, couleurs système de ColorOS / Material You) :
@@ -468,7 +468,7 @@ public class WallService extends WallpaperService {
         void load(SharedPreferences prefs, File scenes) {
             String id = prefs.getString("scene", null);
             boolean anim = prefs.getBoolean("anim", true);
-            String key = id + "|" + anim;
+            String key = id + "|" + anim + "|" + prefs.getLong("rev", 0);   // rev change quand on réimporte une scène du même nom
             if (key.equals(loadedKey) && sc != null) return;
             loadedKey = key;
             freeScene();
