@@ -680,9 +680,10 @@ public class WallService extends WallpaperService {
             float tanHs = tanH0 * s.W / s.ext[2], tanVs = tanH0 * s.H / s.ext[2];
             float aspect = vw / (float) vh;
             // vue : remplit l'écran avec une marge pour pouvoir bouger, sans dépasser ~80° en vertical
-            float zoom = 0.86f;
+            boolean wall = "wallpaper".equals(s.meta.optString("kind"));
+            float zoom = wall ? 0.92f : 0.86f;                    // un fond d'écran garde presque tout son cadrage
             float tv = Math.min(tanVs, tanHs / aspect) * zoom;
-            tv = Math.min(tv, 0.9f);
+            if (!wall) tv = Math.min(tv, 0.9f);
             float th = tv * aspect;
             float yawRoom = (float) (Math.atan(tanHs) - Math.atan(th));
             float pitchRoom = (float) (Math.atan(tanVs) - Math.atan(tv));
