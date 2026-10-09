@@ -158,7 +158,7 @@ public class SettingsActivity extends Activity {
             try {
                 List<String> ids = Ck3d.importPack(this, u, fname);
                 runOnUiThread(() -> {
-                    if (!ids.isEmpty()) prefs.edit().putString("scene", ids.get(ids.size() - 1)).apply();
+                    if (!ids.isEmpty()) prefs.edit().putString("scene", ids.get(ids.size() - 1)).putLong("rev", System.currentTimeMillis()).apply();
                     refresh();
                     toast(ids.size() + " scène(s) importée(s)");
                 });
