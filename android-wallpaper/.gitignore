@@ -1,0 +1,8 @@
+.gradle/
+build/
+app/build/
+local.properties
+*.cockpit3d
+*.mp4
+*.jpg
+*.webp

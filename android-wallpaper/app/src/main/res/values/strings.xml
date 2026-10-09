@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">mobiGlas Fond 3D</string>
+    <string name="wall_desc">Fond d\'écran 3D animé qui bouge avec le téléphone (cabines cockpit3d et fonds en relief).</string>
+</resources>
