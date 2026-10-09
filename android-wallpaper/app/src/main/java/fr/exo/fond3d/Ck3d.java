@@ -68,7 +68,6 @@ public final class Ck3d {
                 if (!meta.has("label")) meta.put("label", labelFor(k));
                 meta.put("source", stem);
                 meta.put("ship", k);
-                try (FileOutputStream mo = new FileOutputStream(new File(dir, "meta.json"))) { mo.write(meta.toString().getBytes("UTF-8")); }
                 JSONObject files = s.getJSONObject("files");
                 Iterator<String> fn = files.keys();
                 while (fn.hasNext()) {
@@ -88,6 +87,8 @@ public final class Ck3d {
                         }
                     }
                 }
+                // meta.json en dernier : le fond d'écran recharge la scène quand il le voit changer, donc une fois tout le reste écrit
+                try (FileOutputStream mo = new FileOutputStream(new File(dir, "meta.json"))) { mo.write(meta.toString().getBytes("UTF-8")); }
                 ids.add(id);
             }
         } finally {

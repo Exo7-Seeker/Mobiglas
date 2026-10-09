@@ -202,6 +202,7 @@ public class WallService extends WallpaperService {
         private EGLContext ctx;
         private EGLSurface surf;
         private Renderer r;
+        private int frameCount;
 
         RenderThread(FondEngine e, Surface s) { super("fond3d-gl"); eng = e; surface = s; }
 
@@ -232,7 +233,8 @@ public class WallService extends WallpaperService {
                         doReload = reload; reload = false; ww = w; hh = h;
                     }
                     if (!wasVis) { r.resumeVideos(); wasVis = true; }
-                    if (doReload) r.load(eng.prefs(), WallServiceHolder.filesDir);
+                    // rechargement : demandé par les réglages, ou fichiers de la scène modifiés (réimport) — vérifié ~1 fois par seconde
+                    if (doReload || ++frameCount % 30 == 0) r.load(eng.prefs(), WallServiceHolder.filesDir);
                     long t0 = SystemClock.uptimeMillis();
                     int[] sz = new int[1], sz2 = new int[1];
                     EGL14.eglQuerySurface(dpy, surf, EGL14.EGL_WIDTH, sz, 0);
@@ -468,8 +470,10 @@ public class WallService extends WallpaperService {
         void load(SharedPreferences prefs, File scenes) {
             String id = prefs.getString("scene", null);
             boolean anim = prefs.getBoolean("anim", true);
-            String key = id + "|" + anim + "|" + prefs.getLong("rev", 0);   // rev change quand on réimporte une scène du même nom
-            if (key.equals(loadedKey) && sc != null) return;
+            File dir0 = (id == null || scenes == null) ? null : new File(new File(scenes, id), "meta.json");
+            long stamp = dir0 != null ? dir0.lastModified() : 0;      // change quand la scène est réimportée
+            String key = id + "|" + anim + "|" + prefs.getLong("rev", 0) + "|" + stamp;
+            if (key.equals(loadedKey)) return;
             loadedKey = key;
             freeScene();
             if (id == null || scenes == null) return;
