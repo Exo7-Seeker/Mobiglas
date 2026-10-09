@@ -34,3 +34,12 @@ jobs:
             --title "Fond d'écran 3D v${{ github.run_number }}" \
             --notes "APK Android du fond d'écran animé en relief (mobiGlas Fond 3D). Installer, ouvrir, importer un fichier .cockpit3d, choisir la scène, Appliquer." \
             --latest
+      - name: Copier l'APK sur le site (lien direct exo7-seeker.github.io/Mobiglas/fond3d.apk)
+        run: |
+          cp mobiglas-fond-3d.apk fond3d.apk
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add fond3d.apk
+          git commit -m "APK fond 3D v${{ github.run_number }}" || exit 0
+          git pull --rebase origin main
+          git push origin HEAD:main
