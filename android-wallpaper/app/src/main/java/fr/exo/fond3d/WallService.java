@@ -19,6 +19,7 @@ import android.opengl.EGLSurface;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES30;
 import android.opengl.GLUtils;
+import android.os.Build;
 import android.os.SystemClock;
 import android.service.wallpaper.WallpaperService;
 import android.util.Log;
@@ -115,6 +116,38 @@ public class WallService extends WallpaperService {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences p, String key) {
             if (thread != null) thread.requestReload();
+            if ("scene".equals(key) && Build.VERSION.SDK_INT >= 27) { colorsFor = null; notifyColorsChanged(); }
+        }
+
+        /* Couleurs annoncées au système (icônes à thème, couleurs système de ColorOS / Material You) :
+           tirées de l'image de la scène, comme pour un fond d'écran fixe. Sans ça, le système invente une couleur (vert). */
+        private Object colors;
+        private String colorsFor;
+
+        @android.annotation.TargetApi(27)
+        @Override
+        public android.app.WallpaperColors onComputeColors() {
+            String id = prefs != null ? prefs.getString("scene", null) : null;
+            if (id == null) return null;
+            if (id.equals(colorsFor) && colors != null) return (android.app.WallpaperColors) colors;
+            try {
+                File dir = new File(Ck3d.scenesDir(WallService.this), id);
+                boolean wall = false;
+                try { wall = "wallpaper".equals(new JSONObject(Ck3d.readText(new File(dir, "meta.json"))).optString("kind")); } catch (Exception ignored) {}
+                File img = new File(dir, wall ? "plate0.jpg" : "still.jpg");
+                if (!img.exists()) img = new File(dir, "still.jpg");
+                BitmapFactory.Options o = new BitmapFactory.Options();
+                o.inSampleSize = 8;
+                Bitmap b = BitmapFactory.decodeFile(img.getAbsolutePath(), o);
+                if (b == null) return null;
+                android.app.WallpaperColors c = android.app.WallpaperColors.fromBitmap(b);
+                b.recycle();
+                colors = c; colorsFor = id;
+                return c;
+            } catch (Throwable t) {
+                Log.w(TAG, "couleurs", t);
+                return null;
+            }
         }
 
         SharedPreferences prefs() { return prefs; }
