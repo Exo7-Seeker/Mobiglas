@@ -1,0 +1,8 @@
+# Fichiers personnels : ils se transmettent de personne à personne, jamais par GitHub
+*.cockpit3d
+*.holo
+*.ps1
+*.bundle
+# Fichiers de travail
+.claude/
+__pycache__/
