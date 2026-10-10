@@ -1381,7 +1381,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
   <div class="rg-disp rg-pack"><div>Fichier cabines 3D (privé, reste sur le téléphone) : <span id="rg-pack-st">…</span></div><p><button type="button" class="btn" id="rg-pack-btn">Changer le fichier cabines</button> <input type="file" id="rg-pack-in" hidden></p>
   <div class="rg-cab"><div class="rg-cab-h">Cockpits : choisis celui de chaque vaisseau</div><div id="rg-cab-list"></div>
   <p><button type="button" class="btn" id="rg-cab-add">Ajouter une cabine</button> <input type="file" id="rg-cab-in" accept=".cockpit3d,application/octet-stream" hidden></p><div id="rg-cab-st" class="rg-cab-st"></div></div></div>
-  <style>.rg-cab{margin-top:10px;display:grid;gap:8px}.rg-cab-h{color:var(--star);font-family:var(--body);font-size:14px}.rg-ship{display:grid;gap:4px;padding:8px 0;border-top:1px solid var(--line)}.rg-ship b{color:var(--amber);font-weight:600;letter-spacing:.06em}.rg-opt{display:flex;align-items:center;gap:10px;font-family:var(--body);font-size:14px;color:var(--star)}.rg-opt input{width:20px;height:20px;flex:0 0 auto}.rg-opt .x{margin-left:auto;background:none;border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 9px;font:inherit;font-size:12px}.rg-cab-st{color:var(--dim);min-height:1em}</style>
+  <style>.rg-cab{margin-top:10px;display:grid;gap:8px}.rg-cab-h{color:var(--star);font-family:var(--body);font-size:14px}.rg-ship{display:grid;gap:4px;padding:8px 0;border-top:1px solid var(--line)}.rg-ship b{color:var(--amber);font-weight:600;letter-spacing:.06em}.rg-opt{display:flex;align-items:center;gap:10px;font-family:var(--body);font-size:14px;color:var(--star)}.rg-opt input{width:20px;height:20px;flex:0 0 auto}.rg-opt .x{margin-left:auto;background:none;border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 9px;font:inherit;font-size:12px}.rg-cab-st{color:var(--dim);min-height:1em}.rg-opt .x2{margin-left:6px}.rg-opt .vs{color:var(--dim);font-size:12px}.rg-opt span{min-width:0;overflow-wrap:anywhere}.rg-opt .rn{display:flex;gap:6px;flex:1;min-width:0}.rg-opt .rn input{flex:1;min-width:0;width:auto;height:auto;padding:6px 8px;font:inherit;background:transparent;color:var(--star);border:1px solid var(--line);border-radius:8px}</style>
   <script>(function(){var B=document.getElementById("rg-pack-btn"),I=document.getElementById("rg-pack-in"),S=document.getElementById("rg-pack-st"),L=document.getElementById("rg-cab-list"),A=document.getElementById("rg-cab-add"),AI=document.getElementById("rg-cab-in"),CS=document.getElementById("rg-cab-st");if(!B||!I)return;
   var SH=[["cors","Corsair"],["vult","Vulture"],["f7c","F7C"]];
   function db(cb){try{var r=indexedDB.open("cockpit3d-pack",1);r.onupgradeneeded=function(){r.result.createObjectStore("pack");};r.onsuccess=function(){cb(r.result);};r.onerror=function(){cb(null);};}catch(e){cb(null);}}
@@ -1397,8 +1397,18 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
     opts.forEach(function(o){var lb=document.createElement("label");lb.className="rg-opt";var r=document.createElement("input");r.type="radio";r.name="rg-cab-"+sh[0];r.checked=o[0]===cur;
       r.addEventListener("change",function(){lss("mg-c3d-var-"+sh[0],o[0]||null);lss("mg-c3d-ship",sh[0]);CS.textContent="Cockpit du "+sh[1]+" : "+o[1]+".";tell();});
       var sp=document.createElement("span");sp.textContent=o[1];lb.appendChild(r);lb.appendChild(sp);
-      if(o[2]){var x=document.createElement("button");x.type="button";x.className="x";x.textContent="Retirer";x.addEventListener("click",function(ev){ev.preventDefault();del(o[2]);});lb.appendChild(x);}
+      if(o[2]&&o[2].vaisseau){var vs=document.createElement("small");vs.className="vs";vs.textContent=o[2].vaisseau;sp.appendChild(document.createElement("br"));sp.appendChild(vs);}
+      if(o[2]){var rn=document.createElement("button");rn.type="button";rn.className="x";rn.textContent="Renommer";rn.addEventListener("click",function(ev){ev.preventDefault();ren(o[2],lb,sp);});lb.appendChild(rn);
+        var x=document.createElement("button");x.type="button";x.className="x x2";x.textContent="Retirer";x.addEventListener("click",function(ev){ev.preventDefault();del(o[2]);});lb.appendChild(x);
+        if(o[2].id===REN){REN=null;setTimeout(function(){ren(o[2],lb,sp);},0);}}
       box.appendChild(lb);});L.appendChild(box);});});}
+  var REN=null;
+  function ren(it,lb,sp){var f=document.createElement("form");f.className="rn";var i=document.createElement("input");i.type="text";i.value=it.name;i.maxLength=40;i.setAttribute("aria-label","Nom de la cabine");
+    var ok=document.createElement("button");ok.type="submit";ok.className="x";ok.textContent="OK";f.appendChild(i);f.appendChild(ok);sp.replaceWith(f);
+    lb.querySelectorAll(".x").forEach(function(b){if(b.parentNode===lb)b.style.display="none";});setTimeout(function(){i.focus();i.select();},30);
+    f.addEventListener("click",function(ev){ev.stopPropagation();});
+    f.addEventListener("submit",function(ev){ev.preventDefault();var v=i.value.trim()||it.name;get("extras",function(X){X=X||[];X.forEach(function(y){if(y.id===it.id)y.name=v;});
+      put({extras:X},function(){CS.textContent="Cabine renommée : « "+v+" ».";list();tell();});});});}
   function del(it){get("extras",function(X){X=(X||[]).filter(function(y){return y.id!==it.id;});var o={extras:X};o["x:"+it.id]=null;
     SH.forEach(function(sh){var v=lsg("mg-c3d-var-"+sh[0]);if(v&&v.split("~")[1]===String(it.id))lss("mg-c3d-var-"+sh[0],null);});
     put(o,function(){CS.textContent="Cabine « "+it.name+" » retirée.";list();tell();});});}
@@ -1406,10 +1416,10 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
   A.addEventListener("click",function(){AI.click();});
   AI.addEventListener("change",function(){var f=AI.files&&AI.files[0];AI.value="";if(!f)return;CS.textContent="lecture…";
     head(f).then(function(ix){var ships=Object.keys(ix.ships||{}).filter(function(s){return SH.some(function(x){return x[0]===s;});});if(!ships.length)throw new Error("aucun vaisseau reconnu");
-      var m=ix.ships[ships[0]].meta||{},nm=(m.atelier&&m.atelier.name)||f.name.replace(/\.cockpit3d$/i,"");var id=Date.now();
-      get("extras",function(X){X=X||[];X.push({id:id,name:nm,ships:ships});var o={extras:X};o["x:"+id]=f;
+      var m=ix.ships[ships[0]].meta||{},nm=(m.atelier&&m.atelier.name)||f.name.replace(/\.cockpit3d$/i,""),vs=(m.atelier&&m.atelier.vaisseau)||"";var id=Date.now();
+      get("extras",function(X){X=X||[];X.push({id:id,name:nm,ships:ships,vaisseau:vs});REN=id;var o={extras:X};o["x:"+id]=f;
         put(o,function(ok){if(!ok){CS.textContent="stockage impossible";return;}var sh=ships[0];lss("mg-c3d-var-"+sh,sh+"~"+id);lss("mg-c3d-ship",sh);
-          CS.textContent="Cabine « "+nm+" » ajoutée et choisie pour le "+SH.filter(function(x){return x[0]===sh;})[0][1]+".";list();tell();});});})
+          CS.textContent="Cabine « "+nm+" »"+(vs?" ("+vs+")":"")+" ajoutée et choisie pour le "+SH.filter(function(x){return x[0]===sh;})[0][1]+". Tu peux la renommer.";list();tell();});});})
     .catch(function(e){CS.textContent="Fichier refusé : "+(e&&e.message||e);});});
   B.addEventListener("click",function(){I.click();});
   I.addEventListener("change",function(){var f=I.files&&I.files[0];I.value="";if(!f)return;S.textContent="chargement…";var w=frame();if(w&&w.__ckLoadPack){w.__ckLoadPack(f).then(function(){st();},function(e){S.textContent="fichier illisible ("+(e&&e.message||e)+")";});return;}put({file:f},function(){st();});});
