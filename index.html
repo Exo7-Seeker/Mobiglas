@@ -1448,7 +1448,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
       <div class="row" id="sk-sv"><label>Souvenirs de Seeker (validés par toi)</label><div id="sk-svlist"></div><div class="btns"><button type="button" id="sk-svask">Demander un souvenir</button></div></div>
       <div class="row btns"><button type="button" id="sk-test">Tester la voix</button><button type="button" id="sk-clear">Effacer la conversation</button><button type="button" id="sk-export">Exporter mes changements</button></div>
     </details></div>
-  </section>
+  <p class="mg-ver" style="margin:22px 0 6px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim)">mobiGlas 1.0 · 10/10/2026</p></section>
 
   <section class="tab-panel" id="tab-spectrum" role="tabpanel" aria-label="Spectrum" hidden>
   <div class="text"><h2>Spectrum</h2><p class="tab-intro">Les nouvelles de l'univers, édition par édition. Les plus récentes en haut.</p></div>
@@ -3291,7 +3291,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
   function idOf(name){var n=String(name).toLowerCase();if(/vulture/.test(n))return "vulture";if(/f7c|hornet/.test(n))return "f7c";if(/corsair/.test(n))return "corsair";if(/pulse/.test(n))return "pulse";return null;}
   var dbp=new Promise(function(res,rej){var r=indexedDB.open("mg-holo",1);r.onupgradeneeded=function(){r.result.createObjectStore("m");};r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});
   function tx(mode,fn){return dbp.then(function(db){return new Promise(function(res,rej){var t=db.transaction("m",mode),st=t.objectStore("m"),out=fn(st);t.oncomplete=function(){res(out&&out.result!==undefined?out.result:out);};t.onerror=function(){rej(t.error);};});});}
-  function get(id){return tx("readonly",function(st){return st.get(id);});}
+  function get(id){return tx("readonly",function(st){return st.get(id);}).then(function(r){if(r instanceof ArrayBuffer)return r;if(r&&typeof Blob!=="undefined"&&r instanceof Blob)return r.arrayBuffer();if(r&&r.buffer instanceof ArrayBuffer)return r.buffer;return null;});}
   function put(id,buf){return tx("readwrite",function(st){st.put(buf,id);});}
   function keys(){return tx("readonly",function(st){return st.getAllKeys();});}
   /* barre d'import en haut du Hangar */
