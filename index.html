@@ -1448,7 +1448,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
       <div class="row" id="sk-sv"><label>Souvenirs de Seeker (validés par toi)</label><div id="sk-svlist"></div><div class="btns"><button type="button" id="sk-svask">Demander un souvenir</button></div></div>
       <div class="row btns"><button type="button" id="sk-test">Tester la voix</button><button type="button" id="sk-clear">Effacer la conversation</button><button type="button" id="sk-export">Exporter mes changements</button></div>
     </details></div>
-  <p class="mg-ver" style="margin:22px 0 6px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim)">mobiGlas 1.0 · 10/10/2026</p></section>
+  <p class="mg-ver" style="margin:22px 0 6px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim)">mobiGlas 1.0.1 · 10/10/2026</p></section>
 
   <section class="tab-panel" id="tab-spectrum" role="tabpanel" aria-label="Spectrum" hidden>
   <div class="text"><h2>Spectrum</h2><p class="tab-intro">Les nouvelles de l'univers, édition par édition. Les plus récentes en haut.</p></div>
@@ -1748,7 +1748,7 @@ function Inventory(mount,opt){
   function renderDetail(){const it=items().find(i=>i.id===st.sel)||items()[0];if(!it){det.innerHTML="";return;}st.sel=it.id;
     det.innerHTML=`<button type="button" class="inv-back">↑ Retour à la liste</button>`+opt.detail(it);post(det);}
   function select(id,scroll){st.sel=id;try{localStorage.setItem("inv-"+opt.key,id);}catch(e){}renderList();renderDetail();
-    if(scroll&&window.matchMedia("(max-width: 820px)").matches)det.scrollIntoView({block:"start"});}
+    if(scroll&&window.matchMedia("(max-width: 820px)").matches){if(opt.key==="hangar")window.scrollTo(0,0);else det.scrollIntoView({block:"start"});}}
   cats.addEventListener("click",e=>{const b=e.target.closest(".inv-cat");if(!b)return;st.cat=b.dataset.cat;renderCats();renderList();});
   list.addEventListener("click",e=>{const b=e.target.closest(".inv-item");if(b)select(b.dataset.id,true);});
   det.addEventListener("click",e=>{const g=e.target.closest("[data-goto]");if(g){e.preventDefault();select(g.dataset.goto,true);det.scrollIntoView({block:"start"});return;}
