@@ -3988,7 +3988,7 @@ window.AMBIANCE={
     if(window.__mapRefresh)__mapRefresh();return {ok:true,repere:inp.nom,rattache_a:R.label};}
   /* panneau « carnet de session » */
   var CB=document.createElement("details");CB.className="sk-carnet";var _ss=document.querySelector(".sk-set");(_ss&&_ss.parentNode||root).insertBefore(CB,_ss||null);
-  function renderCarnet(){var P=pending();CB.innerHTML='<summary>Carnet de session · '+P.length+' note'+(P.length>1?"s":"")+'</summary>'+(P.length?'<ol>'+P.map(function(c){return '<li><span>'+c.t+(c.lieu?" · "+c.lieu:"")+'</span>'+c.texte.replace(/[<>&]/g,"")+'</li>';}).join("")+'</ol><p>Dis « Seeker, entrée de journal » pour qu\'il en fasse une page du journal.</p>':'<p>Vide. En jeu, dis « Seeker, note… » pour y ajouter quelque chose.</p>');}
+  function renderCarnet(){var P=pending();CB.innerHTML='<summary>Carnet de session · '+P.length+' note'+(P.length>1?"s":"")+'</summary>'+(P.length?'<ol>'+P.map(function(c){return '<li><span>'+String(c.t||"").replace(/[<>&]/g,"")+(c.lieu?" · "+String(c.lieu).replace(/[<>&]/g,""):"")+'</span>'+String(c.texte||"").replace(/[<>&]/g,"")+'</li>';}).join("")+'</ol><p>Dis « Seeker, entrée de journal » pour qu\'il en fasse une page du journal.</p>':'<p>Vide. En jeu, dis « Seeker, note… » pour y ajouter quelque chose.</p>');}
   (window.__mgReady||Promise.resolve()).then(renderCarnet);
   function inspirationSC(th){var A=window.AMBIANCE;if(!A)return "Rien.";var k=norm(th||""),T=A.themes,best=Object.keys(T).filter(function(x){return k.indexOf(x)>-1||x.indexOf(k)>-1;});
     if(!best.length)best=Object.keys(T).sort(function(){return Math.random()-.5}).slice(0,2);
