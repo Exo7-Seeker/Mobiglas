@@ -1435,7 +1435,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
           <label class="chk"><input type="checkbox" id="sk-comment" checked> Seeker commente ce qui se passe en jeu</label>
           <div style="font-size:12px;margin:2px 0 6px">Pause minimale entre deux remarques : <select id="sk-cdelay"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="20">20 min</option><option value="30">30 min</option></select></div>
           <input id="sk-linkcode" type="text" readonly placeholder="Code de liaison (à générer)">
-          <div class="btns"><button type="button" id="sk-linkgen">Générer le code</button><button type="button" id="sk-linkcopy">Copier la commande PC</button><button type="button" id="sk-linktest">Tester la liaison</button><button type="button" id="sk-linkreset">Effacer le journal</button></div>
+          <div class="btns"><button type="button" id="sk-linkgen">Générer le code</button><button type="button" id="sk-linkcopy">Copier le code</button><button type="button" id="sk-linktest">Tester la liaison</button><button type="button" id="sk-linkreset">Effacer le journal</button></div>
           <div id="sk-linkstats" style="font-size:12px;opacity:.85;margin-top:6px;display:none"></div>
           <div id="sk-linklog" style="font-size:12px;opacity:.85;line-height:1.5;margin-top:6px"></div></div>
         <label class="chk"><input type="checkbox" id="sk-hfauto"> Démarrer en mains libres : écoute continue « Seeker… »</label>
@@ -4584,7 +4584,7 @@ window.AMBIANCE={
     if(!code)txt="Pas encore configurée.";
     else if(g(K.on,"1")!=="1")txt="Désactivée.";
     else if(pcOnline())txt="PC connecté"+(playing()?" · en jeu":" · jeu éteint ou en menu");
-    else if(G.relayAt&&Date.now()-G.relayAt<60000)txt="Relais joignable · PC pas encore détecté (lance seeker-pc.ps1)";
+    else if(G.relayAt&&Date.now()-G.relayAt<60000)txt="Relais joignable · PC pas encore détecté (lance Seeker sur le PC)";
     else txt="Relais en attente…";
     if(st)st.textContent=txt;
     if(strip){var live=code&&g(K.on,"1")==="1"&&pcOnline();strip.textContent=live?("📡 "+(playing()&&summary()?summary():"PC connecté, en attente du jeu")):"";strip.style.display=live?"":"none";}
@@ -4641,7 +4641,7 @@ window.AMBIANCE={
     var onb=$("sk-linkon");if(onb){onb.checked=g(K.on,"1")==="1";onb.onchange=function(){s(K.on,onb.checked?"1":"0");connect();render();};}
     var gen=$("sk-linkgen");if(gen)gen.onclick=function(){if(g(K.code,"")&&!confirm("Remplacer le code actuel ? Il faudra relancer le script PC avec le nouveau."))return;var c=newCode();s(K.code,c);s(K.last,"");$("sk-linkcode").value=c;connect();render();};
     var cp=$("sk-linkcopy");if(cp)cp.onclick=function(){var c=g(K.code,"");if(!c){$("sk-linkstat").textContent="Génère d'abord un code.";return;}
-      var cmd="powershell -ExecutionPolicy Bypass -File .\\seeker-pc.ps1 -Code "+c;var done=function(ok){cp.textContent=ok?"Commande copiée ✓":"Copie impossible";setTimeout(function(){cp.textContent="Copier la commande PC";},3000);};
+      var cmd=c;var done=function(ok){cp.textContent=ok?"Code copié ✓":"Copie impossible";setTimeout(function(){cp.textContent="Copier le code";},3000);};
       try{navigator.clipboard.writeText(cmd).then(function(){done(true);},function(){done(false);});}catch(_){done(false);}};
     var cmb=$("sk-comment");if(cmb){cmb.checked=g(K.cm,"1")==="1";cmb.onchange=function(){s(K.cm,cmb.checked?"1":"0");};}
     var cdl=$("sk-cdelay");if(cdl){cdl.value=g(K.cd,"10");cdl.onchange=function(){s(K.cd,cdl.value);};}
