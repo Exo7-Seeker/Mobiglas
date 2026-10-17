@@ -1424,6 +1424,8 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
   <div class="sk-regl"><details class="sk-set" open>
       <summary>Réglages de Seeker</summary>
       <div class="row"><label for="sk-key">Clé d'API Claude</label><input id="sk-key" type="password" placeholder="sk-ant-…" autocomplete="off"><p>Elle reste uniquement sur ce téléphone.</p><div class="btns"><button type="button" id="sk-key-save">Enregistrer la clé</button><button type="button" id="sk-key-del">Effacer</button></div></div>
+      <div class="row" id="sk-sp"><label>Spectrum</label><label class="chk"><input type="checkbox" id="sk-spauto" checked> Nouvelle édition chaque semaine, écrite par Seeker à partir des vraies nouvelles de l'univers</label><div class="btns"><button type="button" id="sk-spnow">Écrire l'édition maintenant</button></div><div id="sk-spstat" style="font-size:13px;margin:4px 0"></div></div>
+      <div class="row" id="sk-ear"><label for="sk-earmode">Oreille de Seeker (reconnaissance vocale en mains libres)</label><select id="sk-earmode"><option value="chrome">Chrome (Google)</option><option value="whisper">Whisper · plus précis</option></select><input id="sk-earkey" type="password" placeholder="gsk_…" autocomplete="off"><p>Clé gratuite : console.groq.com → API Keys → Create API Key. Elle reste uniquement sur ce téléphone. En mains libres, tes phrases sont transcrites par Whisper ; l'écoute de « Seeker » partout dans l'appli reste celle de Chrome. Si l'oreille Whisper ne répond pas, Chrome reprend tout seul.</p><div class="btns"><button type="button" id="sk-earsave">Enregistrer</button><button type="button" id="sk-eartest">Tester</button><button type="button" id="sk-eardel">Effacer</button></div><div id="sk-earstat" style="font-size:13px;margin:4px 0"></div></div>
       <div class="row"><label for="sk-model">Modèle</label><select id="sk-model"><option value="claude-haiku-4-5-20251001">Haiku 4.5 · rapide, économique</option><option value="claude-sonnet-5">Sonnet 5 · plus fin</option></select></div>
       <div class="row">
         <label class="chk"><input type="checkbox" id="sk-voice"> Seeker parle à voix haute</label>
@@ -1434,6 +1436,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
           <label class="chk"><input type="checkbox" id="sk-linkon" checked> Recevoir ce qui se passe en jeu</label>
           <label class="chk"><input type="checkbox" id="sk-comment" checked> Seeker commente ce qui se passe en jeu</label>
           <div style="font-size:12px;margin:2px 0 6px">Pause minimale entre deux remarques : <select id="sk-cdelay"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="20">20 min</option><option value="30">30 min</option></select></div>
+          <label class="chk"><input type="checkbox" id="sk-moments" checked> Seeker prend la parole tout seul : vaisseau sorti du hangar, arrivée sur une planète</label>
           <input id="sk-linkcode" type="text" readonly placeholder="Code de liaison (à générer)">
           <div class="btns"><button type="button" id="sk-linkgen">Générer le code</button><button type="button" id="sk-linkcopy">Copier le code</button><button type="button" id="sk-linktest">Tester la liaison</button><button type="button" id="sk-linkreset">Effacer le journal</button></div>
           <div id="sk-linkstats" style="font-size:12px;opacity:.85;margin-top:6px;display:none"></div>
@@ -1448,7 +1451,7 @@ a.cx-ln{color:var(--hud);text-decoration:underline;text-decoration-color:rgba(95
       <div class="row" id="sk-sv"><label>Souvenirs de Seeker (validés par toi)</label><div id="sk-svlist"></div><div class="btns"><button type="button" id="sk-svask">Demander un souvenir</button></div></div>
       <div class="row btns"><button type="button" id="sk-test">Tester la voix</button><button type="button" id="sk-clear">Effacer la conversation</button><button type="button" id="sk-export">Exporter mes changements</button></div>
     </details></div>
-  <p class="mg-ver" style="margin:22px 0 6px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim)">mobiGlas 1.0.3 · 11/10/2026</p></section>
+  <p class="mg-ver" style="margin:22px 0 6px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim)">mobiGlas 1.1 · 17/10/2026</p></section>
 
   <section class="tab-panel" id="tab-spectrum" role="tabpanel" aria-label="Spectrum" hidden>
   <div class="text"><h2>Spectrum</h2><p class="tab-intro">Les nouvelles de l'univers, édition par édition. Les plus récentes en haut.</p></div>
@@ -2708,7 +2711,7 @@ var media=im.scene?'<canvas data-scene="'+esc(im.scene)+'" aria-hidden="true"></
     window.addEventListener("hashchange",function(){if(location.hash!=="#spectrum")close();});
   }
 
-  window.__rebuildJournal=buildJournal;
+  window.__rebuildJournal=buildJournal;window.__rebuildSpectrum=function(){try{buildSpectrum();}catch(_){}};
   (window.__mgReady||Promise.resolve()).then(function(){setTimeout(function(){buildJournal();buildSpectrum();},0);});
 })();
 </script>
@@ -4249,7 +4252,7 @@ window.AMBIANCE={
   function hfMode(m,t){HF.dataset.m=m||"";HS.textContent=t;}
   async function lockOn(){try{if(navigator.wakeLock)wlock=await navigator.wakeLock.request("screen");}catch(_){}}
   function open(){if(!SR){say("Le micro n'est pas disponible dans ce navigateur.",true);return;}hfOn=true;HF.hidden=false;HR.textContent="";HH.textContent="";lockOn();hfMode("",wake?idleTxt():"Touche l'écran pour parler");if(wake)startWake();mgFx.open();}
-  function close(){hfOn=false;HF.hidden=true;try{window.__wlog&&window.__wlog("CLOSE overlay (wrec="+!!wrec+" paused="+paused+" busy="+busy+" speaking="+!!window.__skSpeaking+")");}catch(_){}cmdWait=false;try{if(window.__oneRec)window.__oneRec.cancel();}catch(_){}stopWake();setTimeout(function(){if(wake&&!wrec)startWake();},700);try{wlock&&wlock.release();}catch(_){}wlock=null;}
+  function close(){if(window.__ear)__ear.release();hfOn=false;HF.hidden=true;try{window.__wlog&&window.__wlog("CLOSE overlay (wrec="+!!wrec+" paused="+paused+" busy="+busy+" speaking="+!!window.__skSpeaking+")");}catch(_){}cmdWait=false;try{if(window.__oneRec)window.__oneRec.cancel();}catch(_){}stopWake();setTimeout(function(){if(wake&&!wrec)startWake();},700);try{wlock&&wlock.release();}catch(_){}wlock=null;}
   HFB.addEventListener("click",open);HF.querySelector(".hf-x").addEventListener("click",function(e){e.stopPropagation();close();});
   document.addEventListener("visibilitychange",function(){if(hfOn&&!document.hidden)lockOn();});
   WK.addEventListener("click",function(e){e.stopPropagation();});
@@ -4260,7 +4263,7 @@ window.AMBIANCE={
     AU.onchange=function(){s("mg-hf-auto",AU.checked?"1":"0");if(AU.checked){wake=true;WK.checked=true;s("mg-hf-wake","1");}};
     if(on&&SR){wake=true;WK.checked=true;setTimeout(function(){try{if(!hfOn)open();}catch(_){}},2800);}})();
   /* appui n'importe où = parler une fois */
-  HF.addEventListener("click",function(e){if(e.target.closest(".hf-wake,.hf-x"))return;if(busy)return;stopSpeech();stopWake();
+  HF.addEventListener("click",function(e){if(e.target.closest(".hf-wake,.hf-x"))return;if(busy)return;stopSpeech();stopWake();if(window.__ear&&__ear.on()){earGo(false);return;}
     oneShot({start:function(){hfMode("listening","J'écoute…");mgFx.beep();},
       live:function(t){HH.textContent="« "+t+" »";},
       error:function(){hfMode("","Rien capté. Touche pour réessayer");},
@@ -4277,7 +4280,7 @@ window.AMBIANCE={
   var BYE=["À ton service, Exo. Je reste en veille.","Quand tu veux, Exo. Je ne bouge pas.","Reçu. Je veille.","Avec plaisir, Exo. Je reste dans le coin."];
   function byeNow(){try{window.__wlog&&window.__wlog("BYE (merci Seeker)");}catch(_){}HH.textContent="";close();say(BYE[Math.floor(Math.random()*BYE.length)]);}
   function wstat(t){var e=$("sk-wakestat");if(e)e.textContent=t||"";}
-  function startWake(){if(!wake||wrec||paused||(busy&&!tailOn()))return;var rec=wrec=mkRec(true);rec.interimResults=true;var done={},iT=null,lastR=null,lastIdx=-1,lastErr="";var CARRY=CARRYG;CARRYG=null;var TAIL=busy?window.__skAsk:null,CONT=null,lastAt=0;
+  function startWake(){if(hfOn&&wake&&!paused&&window.__ear&&__ear.on()){if(wrec){var r0=wrec;wrec=null;r0.onend=null;try{r0.abort();}catch(_){}}if(!busy)earGo(true);return;}if(!wake||wrec||paused||(busy&&!tailOn()))return;var rec=wrec=mkRec(true);rec.interimResults=true;var done={},iT=null,lastR=null,lastIdx=-1,lastErr="";var CARRY=CARRYG;CARRYG=null;var TAIL=busy?window.__skAsk:null,CONT=null,lastAt=0;
     rec.onstart=function(){permErr=0;wlog("START (hfOn="+hfOn+(TAIL?", suite possible":"")+(CARRY?", reprise":"")+")");if(!busy&&!CARRY){hfMode("wake",idleTxt());wstat("👂 J'écoute : dis « Seeker… »");}};
     /* traite une phrase (finale ou, faute de mieux, intermédiaire) */
     function handle(R){var hit=null,heard=R[0].transcript.trim();if(!heard)return;if(hfOn&&isBye(heard)){byeNow();return;}
@@ -4312,7 +4315,7 @@ window.AMBIANCE={
     if(CB){CB.checked=wake;CB.onchange=function(){wake=CB.checked;WK.checked=wake;s("mg-hf-wake",wake?"1":"0");if(wake){startWake();}else stopWake();};}
     setTimeout(go,3000);document.addEventListener("pointerdown",function(){if(!tried){tried=true;setTimeout(go,100);}},{once:true});
     document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(go,300);});})();
-  function stopWake(){if(wrec){var r=wrec;wrec=null;r.onend=null;try{r.abort();}catch(_){}}}
+  function stopWake(){if(window.__ear)__ear.stop();if(wrec){var r=wrec;wrec=null;r.onend=null;try{r.abort();}catch(_){}}}
 
   /* ---- v109 : patience réglable, phrase reportée entre deux sessions d'écoute, suite de phrase, coupure de parole ---- */
   function patMs(){var v=2000;try{v=parseInt(localStorage.getItem("mg-pat")||"2000",10)||2000;}catch(_){}return Math.max(1000,Math.min(4000,v));}
@@ -4344,7 +4347,57 @@ window.AMBIANCE={
   window.__hfResume=function(){if(window.__skSpeaking)return;bargeStop();paused=false;setTimeout(function(){if(busy||window.__skSpeaking)return;hfMode(wake?"wake":"",wake?idleTxt():"Touche l'écran pour parler");if(wake)startWake();},750);};
   var idleN=0;setInterval(function(){if(!window.__skSpeaking){idleN=0;return;}var pl=(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending))||(window.__SKV&&__SKV.isPlaying());if(pl||busy){idleN=0;return;}
     if(++idleN>=(g(K.eng,"phone")==="seeker"?12:3)){idleN=0;window.__skSpeaking=false;setMode(null);if(window.__hfResume)__hfResume();}},1500);
-  window.__hfSay=function(t){if(hfOn)HR.textContent=t;};
+  
+  /* 1.1 : l'oreille Whisper dans le mains libres (phrase complète, puis même suite que la reconnaissance de Chrome) */
+  window.__earVocab=BIAS;
+  function earGo(cont){var E=window.__ear;if(!E)return;
+    E.listen({cont:cont,more:more,pat:patMs,idle:8000,
+      ctx:function(){var a=LOG.querySelectorAll(".sk-ai"),l=a[a.length-1];return l?String(l.textContent||"").slice(-160):"";},
+      ready:function(){if(!hfOn)return;if(cont)hfMode("wake",idleTxt());else{hfMode("listening","J'écoute…");mgFx.beep();}},
+      start:function(){if(hfOn){hfMode("listening",cont?"Je t'écoute…":"J'écoute…");HH.textContent="« … »";}},
+      end:function(t,w){if(!hfOn&&w!=="ok")return;t=fixNames(String(t||"")).trim();
+        if(!t){if(w==="erreur"){try{E.release();}catch(_){}HH.textContent="";hfMode("","Oreille Whisper indisponible : Chrome prend le relais.");setTimeout(function(){if(!hfOn||busy)return;if(cont)startWake();else HF.click();},700);return;}
+          if(cont)startWake();else hfMode("",wake?idleTxt():"Rien capté. Touche pour réessayer");return;}
+        if(hfOn&&isBye(t)){byeNow();return;}
+        var m=findWake(t);if(m&&m.index<3){var rest=t.slice(m.index+m[0].length).trim();if(!rest){mgFx.beep();hfMode("wake","Oui ?");if(cont)startWake();else earGo(false);return;}t=rest;}
+        if(cont){var nw=t.split(/\s+/).filter(Boolean);if(nw.length<2&&t.length<6){startWake();return;}}
+        HH.textContent="« "+t+" »";hfMode("thinking","Analyse…");mgFx.beep();window.__skAlts=[];ask(t);}});}
+window.__hfSay=function(t){if(hfOn)HR.textContent=t;};
+  /* 1.1 : prise de parole spontanée (moment de jeu) : Seeker parle puis écoute, comme un appui sur son écran */
+  var MOM={opened:false,listen:false,at:0,nLog:0};
+  window.__skMoment=async function(kind,brief,data){
+    var key=g(K.key,"");if(!key||!brief)return false;
+    if(busy||root.classList.contains("speaking")||window.__skSpeaking)return "busy";
+    if(document.visibilityState&&document.visibilityState!=="visible")return "hidden";
+    busy=true;var final="";
+    try{
+      var note="[MOMENT DE BORD — tes capteurs viennent de le signaler, Exo ne t'a rien demandé : tu prends la parole de toi-même, à l'oral, dans ton caractère. Aucun ordre, aucune consigne. Ne parle jamais de fichier, de PC, de journal ou de capteur. N'invente aucun fait : appuie-toi seulement sur les fiches ci-dessous.]\n"+brief+(data?"\n[FICHES]\n"+data:"");
+      var msgs=hist.slice(-6).concat([{role:"user",content:note}]);
+      var ctl=new AbortController(),tmo=setTimeout(function(){ctl.abort();},30000);
+      var res=await fetch("https://api.anthropic.com/v1/messages",{signal:ctl.signal,method:"POST",headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+        body:JSON.stringify({model:g(K.model,"claude-haiku-4-5-20251001"),max_tokens:kind==="planete"?480:220,system:[{type:"text",text:PERSONA,cache_control:{type:"ephemeral"}},{type:"text",text:state()+(persoText()?"\n"+persoText():"")}],messages:msgs})});
+      clearTimeout(tmo);if(!res.ok)return false;
+      var dj=await res.json();final=(dj.content||[]).filter(function(b){return b.type==="text";}).map(function(b){return b.text;}).join(" ").trim();
+      if(!final||/^[«"\s]*…[»"\s.]*$/.test(final))return false;
+      hist.push({role:"user",content:"[Moment de bord] "+brief.split("\n")[0]},{role:"assistant",content:final});hist=hist.slice(-20);s(K.hist,JSON.stringify(hist));
+    }catch(_){return false;}
+    finally{busy=false;}
+    /* comme un appui sur l'écran : le mains libres s'ouvre, Seeker parle, puis il écoute la réponse */
+    MOM.opened=false;
+    if(!hfOn&&SR){try{open();MOM.opened=true;}catch(_){}}
+    MOM.listen=hfOn&&!wake;MOM.at=Date.now();MOM.nLog=LOG.querySelectorAll(".sk-me").length;
+    try{window.__wlog&&window.__wlog("MOMENT "+kind);}catch(_){}
+    say(final);
+    if(MOM.opened)setTimeout(momIdle,45000);
+    return true;};
+  function momIdle(){if(!MOM.opened||!hfOn)return;if(busy||window.__skSpeaking||root.classList.contains("speaking")){setTimeout(momIdle,15000);return;}
+    if(LOG.querySelectorAll(".sk-me").length>MOM.nLog){MOM.opened=false;return;}   /* Exo a répondu : on laisse la conversation ouverte */
+    if(Date.now()-MOM.at<40000){setTimeout(momIdle,10000);return;}
+    MOM.opened=false;try{close();}catch(_){}}
+  (function(){var base=window.__hfResume;window.__hfResume=function(){base.apply(this,arguments);
+    if(!MOM.listen)return;MOM.listen=false;
+    setTimeout(function(){if(!hfOn||busy||window.__skSpeaking||wake)return;try{HF.click();}catch(_){}},900);};})();
+
   window.addEventListener("hashchange",function(){if(location.hash==="#seeker"&&!LOG.children.length){say(g(K.key,"")?"En ligne. Je t'écoute, Exo.":"Bonjour, Exo. Il me manque ma clé de connexion. Elle se règle tout en bas.",true);}});
 })();
 </script>
@@ -4356,7 +4409,7 @@ window.AMBIANCE={
   function g(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(_){return d;}}
   function s(k,v){try{localStorage.setItem(k,v);}catch(_){}}
   var SERVER="https://ntfy.sh";
-  var G={pcAt:0,relayAt:0,loc:null,locAt:0,jur:null,arm:null,mon:false,ship:null,shipAt:0,pilot:false,crime:0,med:0,deaths:0,kills:0,sStart:0,sEnd:0,shard:null,locRaw:null,ev:[],key:[],trail:[],miss:null,pk:null,route:null,salv:0,cur:null};
+  var G={pcAt:0,relayAt:0,loc:null,locAt:0,jur:null,arm:null,mon:false,ship:null,shipAt:0,pilot:false,crime:0,med:0,deaths:0,kills:0,sStart:0,sEnd:0,shard:null,locRaw:null,ev:[],key:[],trail:[],miss:null,pk:null,route:null,salv:0,cur:null,hangarAt:0,lastRoute:null,corps:null,corpsAt:0,boarded:{}};
   try{var old=JSON.parse(g(K.st,"null"));if(old&&typeof old==="object"){for(var k in old)if(k in G&&k!=="relayAt")G[k]=old[k];}}catch(_){}
   window.__skShip=function(){return G.pilot&&G.ship&&!G.sEnd?G.ship:null;};
   var BODY={"1":"Hurston","2":"Crusader","3":"ArcCorp","4":"microTech"};
@@ -4448,6 +4501,50 @@ window.AMBIANCE={
       if(ok===true){s(K.cl,String(Date.now()));if(allowMem)s(MEMK,String(Date.now()));}
       else if(ok==="busy"&&n<2)setTimeout(function(){fire(lines,n+1);},20000);});}
   bus.push(function(ev){updateMap();drawRoute(ev);liveExtras(ev);orbFor(ev);if(ev.k==="quantum"||(ev.k==="mission"&&/^Mission (terminée|échouée|abandonnée)/.test(ev.x)))clearRoute();considerRemark(ev);});
+
+  /* ---------- 1.1 : moments où Seeker prend la parole tout seul ---------- */
+  var MK="mg-moments",MLK="mg-moment-last";
+  function momLast(){try{return JSON.parse(g(MLK,"{}"))||{};}catch(_){return {};}}
+  function momOk(id,minMs){var L=momLast(),now=Date.now(),t=0;for(var k in L)if(L[k]>t)t=L[k];if(now-t<120000)return false;return !(L[id]&&now-L[id]<minMs);}
+  function momMark(id){var L=momLast(),now=Date.now();L[id]=now;for(var k in L)if(now-L[k]>86400000)delete L[k];s(MLK,JSON.stringify(L));s(K.cl,String(now));}
+  function momDrop(x){var i=remPend.indexOf(x);if(i>=0)remPend.splice(i,1);if(!remPend.length&&remT){clearTimeout(remT);remT=null;}}
+  function momFire(kind,id,brief,data,n){if(!window.__skMoment)return;
+    window.__skMoment(kind,brief,data).then(function(r){if(r===true)momMark(id);else if((r==="busy"||r==="hidden")&&n<4)setTimeout(function(){momFire(kind,id,brief,data,n+1);},15000);});}
+  function mcut(t,n){t=String(t||"").replace(/\[([^\]]+)\]\([^)]*\)/g,"$1").replace(/\s+/g," ").trim();return t.length>n?t.slice(0,n)+"…":t;}
+  function shipFiche(nm){var ap=appD(),id=hangarId(nm),sh=null;(ap.ships||[]).forEach(function(x){if(x.id===id||nk(x.nom)===nk(nm))sh=x;});var o=[];
+    if(sh){o.push("Vaisseau : "+sh.nom+" ("+String(sh.maker||"").replace(/\s*·.*$/,"")+") — "+(sh.role||""));if(sh.story)o.push("Son histoire avec Exo : "+mcut(sh.story,600));
+      if(Array.isArray(sh.specs))o.push("Fiche : "+sh.specs.slice(0,6).map(function(p){return p[0]+" "+p[1];}).join(" · "));}
+    var c=codexFind(nm)||codexFind(String(nm).replace(/^(Drake|Anvil|Aegis|Mirai|Origin|RSI|MISC|Crusader|Argo|Esperia|Consolidated Outland|Greycat|Tumbril|Kruger|Banu)\s+/i,""));if(c&&c.text)o.push("Codex : "+mcut(c.text,700));
+    return o.join("\n");}
+  function bodyOf(r){if(!r)return null;if(r.t==="body")return r.n;if(r.t==="site")return r.body||null;
+    if(r.t==="place"&&r.p&&/^(ville|avant-poste)/.test(r.p.type||""))return r.p.parent||null;return null;}
+  /* nom de destination du jeu (Stanton2b_Daymar, OOC_Stanton_2b_Daymar, Stanton1_Lorville…) -> planète ou lune connue */
+  function bodyFromRaw(raw){raw=String(raw||"");var r=resolveGame(raw),bn=bodyOf(r);if(bn)return bn;
+    var m=raw.match(/^(?:OOC_)?(?:Stanton|Pyro|Nyx)_?\d+[a-z]?_(.+)$/i);if(m){bn=bodyOf(resolveGame(m[1]));if(bn)return bn;}
+    var n=nk(raw),best=null;(appD().bodies||[]).forEach(function(b){var k=nk(b.name);if(k.length>=4&&n.indexOf(k)>=0&&(!best||k.length>nk(best).length))best=b.name;});
+    if(best)return best;
+    var pl=(appD().places||[]).find(function(x){var k=nk(x.name);return k.length>=5&&n.indexOf(k)>=0&&/^(ville|avant-poste)/.test(x.type||"");});return pl?pl.parent:null;}
+  function bodyFiche(bn){var ap=appD(),b=(ap.bodies||[]).find(function(x){return x.name===bn;});if(!b)return "";var o=[];
+    o.push(b.name+" — "+(b.kind||"")+(b.parent?", rattachée à "+b.parent:"")+(b.sys?" (système "+b.sys+")":""));
+    if(b.atmo)o.push("Atmosphère : "+b.atmo);if(b.climat)o.push("Climat : "+b.climat);
+    if(b.faune)o.push("Faune : "+b.faune);if(b.flore)o.push("Flore : "+b.flore);
+    if(b.faction)o.push("Peuples et factions : "+b.faction);if(b.decouverte)o.push("Histoire : "+b.decouverte);
+    if(b.poi)o.push("Lieux : "+b.poi);
+    var c=codexFind(b.name);if(c&&c.text&&!/^En attente de relecture/.test(c.text))o.push("Codex : "+mcut(c.text,900));
+    return o.join("\n");}
+  function momPlanet(bn,why){if(!bn||g(MK,"1")!=="1")return false;var id="pl:"+bn;if(!momOk(id,2*3600000))return false;var fi=bodyFiche(bn);if(!fi)return false;
+    momFire("planete",id,"Exo "+why+" "+bn+". Présente-lui ce lieu comme une copilote qui connaît le coin, avant qu'il se pose : l'atmosphère et le climat, un trait d'histoire ou de lore, la faune et la flore, les peuples ou factions qu'on y croise. 4 à 6 phrases courtes et vivantes, à l'oral, sans liste ni chiffre inutile. Tu peux finir par une courte question à Exo.",fi,0);return true;}
+  function corpsSeen(raw,ts){var bn=bodyFromRaw(raw);
+    var prev=G.corps;G.corps=bn||G.corps;G.corpsAt=ts;
+    if(!bn||bn===prev||Date.now()-ts>120000||!G.sStart||ts-G.sStart<240000||!pcOnline()||G.sEnd)return;
+    momPlanet(bn,"arrive près de");}
+  function considerMoment(ev){
+    if(!ev.live||g(MK,"1")!=="1"||!pcOnline()||G.sEnd)return;
+    if(ev.k==="ship"&&/^Montée à bord : /.test(ev.x)&&G.ship){var nm=G.ship,first=!G.boarded[nm],lift=G.hangarAt&&ev.t-G.hangarAt<20*60000;G.boarded[nm]=ev.t;
+      if(!first&&!lift)return;var id="vs:"+nk(nm);if(!momOk(id,30*60000))return;momDrop(ev.x);G.hangarAt=0;
+      momFire("hangar",id,"Exo vient de sortir le "+nm+" du hangar et monte à bord. Fais une remarque ou une blague brève sur ce vaisseau (1 à 3 phrases), dans ton caractère : son histoire, ses manies, son état. Pas de fiche technique récitée.",shipFiche(nm),0);return;}
+    if(ev.k==="quantum"&&G.lastRoute&&ev.t-G.lastRoute.t<45*60000){var bn=bodyFromRaw(G.lastRoute.raw);G.lastRoute=null;if(bn&&momPlanet(bn,"arrive par saut quantique à"))momDrop(ev.x);}}
+  bus.push(considerMoment);
   function liveExtras(ev){if(!ev.live)return;
     if(ev.k==="loc"||ev.k==="ship"||(ev.k==="mission"&&/^(Mission acceptée|Nouvel objectif)/.test(ev.x)))addChips(codexSubjects(ev,ev.x));
     if(ev.k==="loc"){var mc=metroCity(G.locRaw);if(mc&&window.__metro&&window.__metro.has(mc))addMetroChip(mc);}
@@ -4525,7 +4622,7 @@ window.AMBIANCE={
     else if((m=t.match(/^Objective Complete:\s*(.+)$/i))){if(G.miss)G.miss.obj=null;push(ts,"mission","Objectif accompli : "+m[1].slice(0,140));capWrite(mid,G.miss&&G.miss.name,{detail:(G.miss&&G.miss.kind?G.miss.kind+" · ":"")+"Objectif accompli : "+m[1].slice(0,100)},ts);}
     else if((m=t.match(/^Contract Complete:\s*(.+)$/i))){var kd=G.miss&&G.miss.kind;G.miss=null;push(ts,"mission","Mission terminée : "+m[1].slice(0,140));sess(ts,"mres",{n:m[1].slice(0,80),r:"terminée"});capWrite(mid,m[1],{statut:"atteint",detail:(kd?kd+" · ":"")+"Contrat terminé"},ts);}
     else if((m=t.match(/^Contract (Failed|Abandoned|Cancel+ed):?\s*(.*)$/i))){var kd2=G.miss&&G.miss.kind,fl=/^f/i.test(m[1]);G.miss=null;push(ts,"mission","Mission "+(fl?"échouée":"abandonnée")+(m[2]?" : "+m[2].slice(0,140):""));sess(ts,"mres",{n:(m[2]||"").slice(0,80),r:fl?"échouée":"abandonnée"});capWrite(mid,m[2],{statut:"abandonné",detail:(kd2?kd2+" · ":"")+(fl?"Contrat échoué":"Contrat abandonné")},ts);}
-    else if(/^Hangar Request Completed/i.test(t)){push(ts,"ship","Demande de hangar terminée : le vaisseau est prêt");}
+    else if(/^Hangar Request Completed/i.test(t)){G.hangarAt=ts;push(ts,"ship","Demande de hangar terminée : le vaisseau est prêt");}
     else if(/^Player Temperature:/i.test(t)){push(ts,"notif","Alerte température : "+(/low temperature/i.test(t)?"froid":/high temperature|overheat/i.test(t)?"chaleur":"anormale"));}
     else if(/Entering Armistice Zone/i.test(t)){G.arm=true;push(ts,"zone","Entrée en zone d'armistice");}
     else if(/Leaving Armistice Zone/i.test(t)){G.arm=false;push(ts,"zone","Sortie de la zone d'armistice");}
@@ -4547,16 +4644,17 @@ window.AMBIANCE={
     var m=l.match(/^<([^>]+)>\s?(.*)$/),ts=m?Date.parse(m[1]):Date.now(),b=m?m[2]:l;if(isNaN(ts))ts=Date.now();
     if(pendingN){var c=b.match(/^(.*)"\s*\[\d+\]\s*to queue\..*?MissionId:\s*\[([^\]]*)\],\s*ObjectiveId:\s*\[([^\]]*)\]/);var p=pendingN;pendingN=null;if(c){notif(p.text+" "+c[1],c[2],c[3],p.ts);return;}}
     var x;
-    if(/\[SeekerPC\]/.test(b)){
+    if(/\[SeekerPC\]/.test(b)){var cz=b.match(/\[SeekerPC\] corps (OOC_[A-Za-z0-9_]+)/);if(cz){corpsSeen(cz[1],ts);return;}
       if(/ hb\b|hello|newlog/.test(b)&&ts>Date.now()-1800000)G.pcAt=ts;
       if(/\bbye\b/.test(b))G.pcAt=0;
       if(/newlog/.test(b)){G.ship=null;G.pilot=false;closeCur(ts);}
       return;}
     if(/\[Seeker\] ping/.test(b)){if(testing)testDone(true);return;}
-    if(/Log started on/.test(b)){closeCur(ts);G.cur=newCur(ts);G.sStart=ts;G.sEnd=0;G.ship=null;G.pilot=false;G.arm=null;G.jur=null;G.loc=null;push(ts,"session","Session de jeu ouverte");return;}
+    if(/Log started on/.test(b)){G.boarded={};G.corps=null;G.hangarAt=0;closeCur(ts);G.cur=newCur(ts);G.sStart=ts;G.sEnd=0;G.ship=null;G.pilot=false;G.arm=null;G.jur=null;G.loc=null;push(ts,"session","Session de jeu ouverte");return;}
     if(/<SystemQuit>/.test(b)){closeCur(ts);G.sEnd=ts;G.ship=null;G.pilot=false;push(ts,"session","Session de jeu fermée");return;}
     if(/<Join PU>/.test(b)){x=b.match(/shard\[([^\]]+)\]/);G.shard=x?x[1]:null;push(ts,"session","Connexion à l'univers persistant");return;}
     if((x=b.match(/<RequestLocationInventory>.*?Location\[([^\]]+)\]/))){setLoc(x[1],ts);return;}
+    if(/ShipElevator_Hangar[A-Za-z]*\] starting effects in current platform state: RaisingPlatform/.test(b)){G.hangarAt=ts;push(ts,"ship","Ascenseur du hangar : vaisseau en place");return;}
     if((x=b.match(/<Vehicle Control Flow>.*?ClearDriver.*?for '([^']+)'/))){var nm=shipName(x[1]);G.pilot=false;push(ts,"ship","Quitte le poste de pilotage : "+nm);return;}
     if((x=b.match(/Added notification "([^"]*)$/))){pendingN={text:x[1],ts:ts};return;}
     if((x=b.match(/Added notification "(.*)"\s*\[\d+\]\s*to queue.*?MissionId:\s*\[([^\]]*)\],\s*ObjectiveId:\s*\[([^\]]*)\]/))){notif(x[1],x[2],x[3],ts);return;}
@@ -4568,7 +4666,7 @@ window.AMBIANCE={
       capWrite(x[1],G.miss&&G.miss.name,{statut:okE?"atteint":"abandonné",detail:okE?"Contrat terminé":(/fail/i.test(x[2])?"Contrat échoué":"Contrat abandonné")},ts);
       if(!okE&&G.miss){var mn2=G.miss.name,fl2=/fail/i.test(x[2]);G.miss=null;push(ts,"mission",(fl2?"Mission échouée":"Mission abandonnée")+(mn2?" : "+mn2:""));sess(ts,"mres",{n:(mn2||"").slice(0,80),r:fl2?"échouée":"abandonnée"});}return;}
     if((x=b.match(/<CLocalMissionPhaseMarker::CreateMarker>.*contract \[([^\]]+)\]/))){var sbm=x[1].match(/_(?:Stanton|Pyro|Nyx)(\d+)_/i);G.bc={raw:x[1],body:sbm?(BODY[sbm[1]]||null):null,salv:/salvage/i.test(x[1]),t:ts};var ck=contractKind(x[1]);if(ck){if(G.miss&&ts-G.miss.at<120000)G.miss.kind=ck;else G.pk={k:ck,t:ts};}return;}
-    if((x=b.match(/<Player Selected Quantum Target - Local>.*selected point (\S+) as their destination/))||(x=b.match(/<Player Requested Fuel to Quantum Target - Server Routing>.*destination (\S+)/))){var qd=questDest(x[1]);G.route={dest:qd,raw:x[1],t:ts};push(ts,"route","Route tracée : "+qd);return;}
+    if((x=b.match(/<Player Selected Quantum Target - Local>.*selected point (\S+) as their destination/))||(x=b.match(/<Player Requested Fuel to Quantum Target - Server Routing>.*destination (\S+)/))){var qd=questDest(x[1]);G.route={dest:qd,raw:x[1],t:ts};G.lastRoute=G.route;push(ts,"route","Route tracée : "+qd);return;}
     if(/<SetSalvageRepairAmmoCount_NoTarget>/.test(b)){G.salv=ts;sess(ts,"salv");push(ts,"salvage","Faisceau de récupération en action");return;}
     if(/Freight Inventory Grid Requesting/.test(b)){push(ts,"cargo","Inventaire de fret / entrepôt ouvert");return;}
     if((x=b.match(/<StoreItem>.*Class\[([^\]]+)\]/))){sess(ts,"item");push(ts,"item","Objet rangé : "+prettyItem(x[1]));return;}
@@ -4661,6 +4759,7 @@ window.AMBIANCE={
       var cmd=c;var done=function(ok){cp.textContent=ok?"Code copié ✓":"Copie impossible";setTimeout(function(){cp.textContent="Copier le code";},3000);};
       try{navigator.clipboard.writeText(cmd).then(function(){done(true);},function(){done(false);});}catch(_){done(false);}};
     var cmb=$("sk-comment");if(cmb){cmb.checked=g(K.cm,"1")==="1";cmb.onchange=function(){s(K.cm,cmb.checked?"1":"0");};}
+    var mmb=$("sk-moments");if(mmb){mmb.checked=g("mg-moments","1")==="1";mmb.onchange=function(){s("mg-moments",mmb.checked?"1":"0");};}
     var cdl=$("sk-cdelay");if(cdl){cdl.value=g(K.cd,"10");cdl.onchange=function(){s(K.cd,cdl.value);};}
     var tb=$("sk-linktest");if(tb)tb.onclick=test;
     var rs=$("sk-linkreset");if(rs)rs.onclick=function(){if(!confirm("Effacer le journal de session et l'état du jeu ?"))return;var keep=G.pcAt;for(var k in G){if(Array.isArray(G[k]))G[k]=[];else if(typeof G[k]==="number")G[k]=0;else if(typeof G[k]==="boolean")G[k]=false;else G[k]=null;}G.pcAt=keep;G.arm=null;save();render();};
@@ -4923,6 +5022,204 @@ if(g()&&(!location.hash||location.hash==="#seeker")){ if(location.hash!=="#seeke
 setTimeout(function(){route();},300);
 
 
+})();
+</script>
+<script>/* 1.1 : oreille Whisper (mains libres) — micro, détecteur de voix, découpage, transcription */
+(function(){
+  function g(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(_){return d;}}
+  function s(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(_){}}
+  var KK="mg-ear-key",KM="mg-ear-mode",ORT="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/";
+  var broken=0,why="",ctx=null,stream=null,node=null,srcN=null,zero=null,sess=null,vst=null,vadP=null,energy=false,ortM=null;
+  var L=null,PRE=[],Q=[],qrun=false,nf=0.004;
+  function wlog(x){try{window.__wlog&&window.__wlog("OREILLE "+x);}catch(_){}}
+  function key(){return String(g(KK,"")).trim();}
+  function prov(k){k=k||key();if(/^gsk_/.test(k))return "groq";if(/^AIza/.test(k))return "gemini";if(/^sk-/.test(k)&&!/^sk-ant-/.test(k))return "openai";return "";}
+  function on(){return g(KM,"chrome")==="whisper"&&!!prov()&&Date.now()>broken&&!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!!(window.AudioContext||window.webkitAudioContext);}
+
+  /* ---------- micro : 16 kHz mono, trames de 512 échantillons (32 ms) ---------- */
+  var WK="class P extends AudioWorkletProcessor{constructor(o){super();this.st=o.processorOptions.r/16000;this.p=0;this.a=0;this.c=0;this.b=new Float32Array(512);this.n=0;}"+
+    "process(i){var x=i[0]&&i[0][0];if(!x)return true;for(var k=0;k<x.length;k++){this.a+=x[k];this.c++;this.p+=1;if(this.p>=this.st){this.p-=this.st;this.b[this.n++]=this.a/this.c;this.a=0;this.c=0;if(this.n===512){this.port.postMessage(this.b.slice(0));this.n=0;}}}return true;}}"+
+    "registerProcessor('ear-p',P);";
+  async function mic(){
+    if(stream&&stream.active&&ctx&&ctx.state!=="closed"){if(ctx.state==="suspended"){try{await ctx.resume();}catch(_){}}return;}
+    release(true);
+    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1}});
+    var AC=window.AudioContext||window.webkitAudioContext;ctx=new AC();srcN=ctx.createMediaStreamSource(stream);zero=ctx.createGain();zero.gain.value=0;zero.connect(ctx.destination);
+    if(ctx.audioWorklet&&window.AudioWorkletNode){var url=URL.createObjectURL(new Blob([WK],{type:"application/javascript"}));await ctx.audioWorklet.addModule(url);
+      node=new AudioWorkletNode(ctx,"ear-p",{processorOptions:{r:ctx.sampleRate}});node.port.onmessage=function(e){feed(e.data);};}
+    else{var st=ctx.sampleRate/16000,p=0,a=0,c=0,b=new Float32Array(512),n=0;node=ctx.createScriptProcessor(2048,1,1);
+      node.onaudioprocess=function(e){var x=e.inputBuffer.getChannelData(0);for(var k=0;k<x.length;k++){a+=x[k];c++;p+=1;if(p>=st){p-=st;b[n++]=a/c;a=0;c=0;if(n===512){feed(b.slice(0));n=0;}}}};}
+    srcN.connect(node);node.connect(zero);
+    if(ctx.state==="suspended"){try{await ctx.resume();}catch(_){}}
+    wlog("micro ouvert ("+ctx.sampleRate+" Hz)");}
+  function release(quiet){try{stream&&stream.getTracks().forEach(function(t){t.stop();});}catch(_){}try{node&&node.disconnect();}catch(_){}try{ctx&&ctx.close();}catch(_){}
+    if(stream&&!quiet)wlog("micro fermé");stream=null;ctx=null;node=null;srcN=null;PRE=[];Q=[];if(L&&!quiet){var l=L;L=null;abortSpec(l);}}
+
+  /* ---------- détecteur de voix : Silero (onnxruntime-web, comme la voix de Seeker), sinon énergie ---------- */
+  function vad(){if(sess||energy)return Promise.resolve();if(vadP)return vadP;
+    vadP=(async function(){try{var ort=await import(ORT+"ort.wasm.min.mjs");ort.env.wasm.wasmPaths=ORT;ort.env.wasm.numThreads=1;try{ort.env.wasm.proxy=true;}catch(_){}
+        var buf=await (await fetch("silero_vad.onnx")).arrayBuffer();sess=await ort.InferenceSession.create(buf,{executionProviders:["wasm"]});ortM=ort;vreset();wlog("détecteur Silero prêt");}
+      catch(e){energy=true;wlog("détecteur Silero indisponible ("+(e&&e.message||e)+") : détecteur d'énergie");}})();
+    return vadP;}
+  function vreset(){if(!ortM)return;vst={h:new ortM.Tensor("float32",new Float32Array(128),[2,1,64]),c:new ortM.Tensor("float32",new Float32Array(128),[2,1,64])};}
+  function eprob(fr){var e=0;for(var i=0;i<fr.length;i++)e+=fr[i]*fr[i];e=Math.sqrt(e/fr.length)+1e-7;
+    var p=Math.max(0,Math.min(1,(20*Math.log10(e/nf)-7)/9));if(p<0.3)nf=nf*0.97+e*0.03;nf=Math.max(0.0008,Math.min(0.05,nf));return p;}
+  async function prob(fr){if(sess&&!energy){try{var o=await sess.run({x:new ortM.Tensor("float32",fr,[1,512]),h:vst.h,c:vst.c});vst.h=o.new_h;vst.c=o.new_c;return o.prob.data[0];}
+      catch(e){energy=true;wlog("détecteur Silero en erreur ("+(e&&e.message||e)+") : détecteur d'énergie");}}
+    return eprob(fr);}
+
+  /* ---------- découpage des phrases ---------- */
+  function feed(fr){Q.push(fr);if(Q.length>40)Q.splice(0,Q.length-40);if(!qrun)pump();}
+  async function pump(){qrun=true;try{while(Q.length){await step(Q.shift());}}finally{qrun=false;}}
+  function pre(fr){PRE.push(fr);if(PRE.length>16)PRE.shift();}
+  async function step(fr){var p=await prob(fr);var l=L;
+    if(!l||l.st==="idle"){pre(fr);if(!l)return;
+      if(p>=0.5){l.cand++;if(l.cand>=2){l.st="speech";l.seg=PRE.slice();l.sp=2;l.sil=0;l.spec=null;try{l.o.start&&l.o.start();}catch(_){}}}else l.cand=0;
+      if(!l.o.cont&&Date.now()-l.t0>(l.o.idle||8000))done(l,"","rien");return;}
+    l.seg.push(fr);
+    if(p<0.35)l.sil+=32;else if(p>=0.5){if(l.sil>=160&&l.spec){abortSpec(l);}l.sil=0;l.sp++;}
+    var commit=Math.max(700,(l.o.pat?l.o.pat():2000)-800),ms=l.seg.length*32;
+    if(!l.spec&&l.sp>=8&&(l.sil>=550||ms>=30000))spec(l);
+    if(l.spec&&l.spec.text!==null){var ext=l.spec.more?1500:0;if(l.sil>=commit+ext||ms>=30000){var t=l.spec.text;if(t)done(l,t,"ok");else again(l);}}
+    else if(l.spec&&l.spec.err){done(l,"","erreur");}
+    if(l.st==="speech"&&!l.spec&&l.sil>=commit+400&&l.sp<8)again(l);}  /* bruit trop court : on oublie */
+  function again(l){if(L!==l)return;if(!l.o.cont){done(l,"","rien");return;}l.st="idle";l.cand=0;l.seg=null;l.spec=null;l.sp=0;l.sil=0;try{l.o.ready&&l.o.ready();}catch(_){}}
+  function done(l,t,w){if(L!==l)return;L=null;abortSpec(l);wlog((w==="ok"?"phrase : « "+t+" »":w));try{l.o.end&&l.o.end(t,w);}catch(e){wlog("erreur fin : "+e);}}
+  function abortSpec(l){if(l&&l.spec){try{l.spec.ctl.abort();}catch(_){}l.spec=null;}}
+
+  /* ---------- transcription ---------- */
+  var HALL=/sous-titr|amara\.org|merci d'avoir regard|merci de votre attention|abonnez-vous|n'oubliez pas de vous abonner|radio-canada|soustitreur|^\W*$/i;
+  function wav(frames,n){var len=n*512,b=new ArrayBuffer(44+len*2),v=new DataView(b),o=44;
+    function w4(p,t){for(var i=0;i<4;i++)v.setUint8(p+i,t.charCodeAt(i));}
+    w4(0,"RIFF");v.setUint32(4,36+len*2,true);w4(8,"WAVE");w4(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,16000,true);v.setUint32(28,32000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w4(36,"data");v.setUint32(40,len*2,true);
+    var pk=0;for(var f=0;f<n;f++){var fr=frames[f];for(var i=0;i<512;i++){var a=Math.abs(fr[i]);if(a>pk)pk=a;}}var gain=pk>0.02&&pk<0.5?Math.min(4,0.7/pk):1;
+    for(var f2=0;f2<n;f2++){var fr2=frames[f2];for(var j=0;j<512;j++){var x=Math.max(-1,Math.min(1,fr2[j]*gain));v.setInt16(o,x<0?x*0x8000:x*0x7fff,true);o+=2;}}return b;}
+  function prompt(o){var voc=(window.__earVocab||[]).slice(0,60).map(function(x){try{return window.__NV?window.__NV(x):x;}catch(_){return x;}}).join(", "),c=o&&o.ctx?o.ctx():"";return ("Conversation en français avec Seeker, l'IA de bord, dans Star Citizen. "+(c?"Seeker vient de dire : « "+c+" » ":"")+"Vocabulaire : "+voc+".").slice(0,900);}
+  async function ask(buf,o,signal){var k=key(),pv=prov(k),t0=Date.now(),r,j,txt="";
+    if(pv==="gemini"){var b64=(function(u){var s0="",ch=0x8000;for(var i=0;i<u.length;i+=ch)s0+=String.fromCharCode.apply(null,u.subarray(i,i+ch));return btoa(s0);})(new Uint8Array(buf));
+      r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",{method:"POST",signal:signal,headers:{"content-type":"application/json","x-goog-api-key":k},
+        body:JSON.stringify({contents:[{parts:[{text:"Transcris mot pour mot ce que dit cette personne, en français, sans rien ajouter ni corriger. Si on n'entend aucune parole, réponds seulement : (rien). "+prompt(o)},{inline_data:{mime_type:"audio/wav",data:b64}}]}],generationConfig:{temperature:0}})});
+      if(!r.ok)throw {status:r.status};j=await r.json();txt=((((j.candidates||[])[0]||{}).content||{}).parts||[]).map(function(p){return p.text||"";}).join(" ").trim();if(/^\(?rien\)?\.?$/i.test(txt))txt="";}
+    else{var fd=new FormData();fd.append("file",new Blob([buf],{type:"audio/wav"}),"seeker.wav");fd.append("language","fr");fd.append("prompt",prompt(o));fd.append("temperature","0");
+      if(pv==="groq"){fd.append("model","whisper-large-v3");fd.append("response_format","verbose_json");}else{fd.append("model","gpt-4o-mini-transcribe");fd.append("response_format","json");}
+      r=await fetch(pv==="groq"?"https://api.groq.com/openai/v1/audio/transcriptions":"https://api.openai.com/v1/audio/transcriptions",{method:"POST",signal:signal,headers:{"Authorization":"Bearer "+k},body:fd});
+      if(!r.ok)throw {status:r.status,retry:r.headers.get("retry-after")};j=await r.json();txt=String(j.text||"").trim();
+      if(j.segments&&j.segments.length&&j.segments.every(function(x){return (x.no_speech_prob||0)>0.7;}))txt="";}
+    if(HALL.test(txt))txt="";wlog(pv+" "+(Date.now()-t0)+" ms");return txt;}
+  function fail(e){var st=e&&e.status;
+    if(st===401||st===403){broken=Infinity;why="clé refusée";}
+    else if(st===429){broken=Date.now()+Math.max(60,parseInt(e.retry||"60",10)||60)*1000;why="limite gratuite atteinte pour l'instant";}
+    else if(st){broken=Date.now()+120000;why="erreur du service ("+st+")";}
+    else{broken=Date.now()+600000;why=navigator.onLine===false?"pas de réseau":"service injoignable depuis l'appli (réseau ou blocage du navigateur)";}
+    wlog("ÉCHEC : "+why+" → retour à Chrome");var st2=document.getElementById("sk-earstat");if(st2)st2.textContent="Oreille Whisper : "+why+". Chrome prend le relais.";}
+  function spec(l){var n=l.seg.length-Math.max(0,Math.floor((l.sil-300)/32));if(n<8)return;var ctl=new AbortController(),sp={ctl:ctl,text:null,more:false,err:false};l.spec=sp;
+    ask(wav(l.seg,n),l.o,ctl.signal).then(function(t){if(l.spec!==sp)return;sp.text=t;sp.more=!!(t&&l.o.more&&l.o.more(t));})
+      .catch(function(e){if(e&&e.name==="AbortError")return;if(l.spec!==sp)return;fail(e);sp.err=true;});}
+
+  /* ---------- interface ---------- */
+  window.__ear={on:on,prov:prov,
+    listen:async function(o){if(L&&L.o.cont&&o.cont)return;if(L){var old=L;L=null;abortSpec(old);}
+      var l={o:o,st:"idle",cand:0,t0:Date.now(),seg:null,spec:null,sp:0,sil:0};L=l;
+      try{await mic();vad();}catch(e){if(L===l){L=null;wlog("micro refusé ("+(e&&e.name||e)+")");broken=Date.now()+600000;why="micro inaccessible";try{o.end&&o.end("","erreur");}catch(_){}}return;}
+      if(L===l){l.t0=Date.now();try{o.ready&&o.ready();}catch(_){}}},
+    stop:function(){if(L){var l=L;L=null;abortSpec(l);}},
+    release:function(){release();},
+    busy:function(){return !!(L&&L.st==="speech");},
+    status:function(){return {on:on(),prov:prov(),why:why,broken:broken>Date.now(),vad:sess&&!energy?"silero":"énergie",mic:!!stream};}};
+  document.addEventListener("visibilitychange",function(){if(document.hidden&&stream)release();});
+
+  /* ---------- réglages ---------- */
+  function wire(){var M=document.getElementById("sk-earmode"),K=document.getElementById("sk-earkey"),S=document.getElementById("sk-earstat");if(!M||!K)return;
+    function show(){var k=key(),pv=prov(k);M.value=g(KM,"chrome");K.value="";K.placeholder=k?"clé enregistrée ("+({groq:"Groq",openai:"OpenAI",gemini:"Gemini"}[pv]||"?")+")":"gsk_…";
+      if(S&&!S.dataset.keep)S.textContent=M.value!=="whisper"?"Oreille actuelle : Chrome (Google).":!k?"Il manque la clé.":!pv?"Clé non reconnue (Groq gsk_…, OpenAI sk-…, Gemini AIza…).":"Oreille actuelle : Whisper ("+({groq:"Groq",openai:"OpenAI",gemini:"Gemini"}[pv])+").";}
+    M.onchange=function(){s(KM,M.value);broken=0;why="";if(S)delete S.dataset.keep;show();};
+    document.getElementById("sk-earsave").onclick=function(){var v=K.value.trim();if(!v){show();return;}if(!prov(v)){S.dataset.keep="1";S.textContent="Clé non reconnue : elle doit commencer par gsk_ (Groq), sk- (OpenAI) ou AIza (Gemini).";return;}
+      s(KK,v);s(KM,"whisper");broken=0;why="";delete S.dataset.keep;show();};
+    document.getElementById("sk-eardel").onclick=function(){s(KK,null);s(KM,"chrome");broken=0;why="";delete S.dataset.keep;show();};
+    document.getElementById("sk-eartest").onclick=function(){if(!prov()){S.dataset.keep="1";S.textContent="Enregistre d'abord une clé.";return;}
+      var was=g(KM,"chrome");s(KM,"whisper");broken=0;S.dataset.keep="1";S.textContent="Test : parle après le bip (une phrase)…";
+      window.__ear.listen({cont:false,idle:7000,ctx:function(){return "";},ready:function(){try{window.mgFx&&mgFx.beep();}catch(_){}},start:function(){S.textContent="Test : je t'écoute…";},
+        end:function(t,w){s(KM,was==="whisper"?"whisper":was);if(w==="ok")S.textContent="Ça marche ✓ J'ai compris : « "+t+" »";else if(w==="rien")S.textContent="Je n'ai rien entendu. Réessaie en parlant plus près.";else S.textContent="Échec : "+(why||"erreur")+".";
+          if(!document.querySelector(".sk-hf")||document.querySelector(".sk-hf").hidden)setTimeout(function(){window.__ear.release();},500);}});};
+    show();}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",wire);else wire();
+})();
+</script>
+<script>/* 1.1 : éditions Spectrum automatiques, écrites par Seeker à partir des vraies nouvelles (Comm-Links RSI) */
+(function(){
+  function g(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(_){return d;}}
+  function s(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(_){}}
+  var API="https://api.star-citizen.wiki/api/comm-links",K_ON="mg-sp-auto",K_LAST="mg-sp-last",K_USED="mg-sp-used",WEEK=7*86400000;
+  var running=false;
+  var MOIS=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  function stat(t){var e=document.getElementById("sk-spstat");if(e)e.textContent=t;try{window.__wlog&&window.__wlog("SPECTRUM "+t);}catch(_){}}
+  function clean(t){return String(t||"").replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#0?39;/g,"'").replace(/\s+/g," ").trim();}
+  function text(it){var tr=it.translations||{},t=tr.en_EN||tr.en||"";if(typeof t==="object")t=t.text||t.translation||"";return clean(t);}
+  async function getJ(u,ms){var c=new AbortController(),tm=setTimeout(function(){c.abort();},ms||20000);try{var r=await fetch(u,{signal:c.signal,headers:{"accept":"application/json"}});if(!r.ok)throw new Error("HTTP "+r.status);return await r.json();}finally{clearTimeout(tm);}}
+  function used(){try{return JSON.parse(g(K_USED,"[]"))||[];}catch(_){return [];}}
+  function edName(d){var m=MOIS[d.getMonth()];return m.charAt(0).toUpperCase()+m.slice(1)+" "+(d.getFullYear()+930)+" · semaine du "+d.getDate();}
+  function parseJSON(t){t=String(t||"").trim().replace(/^```(?:json)?/i,"").replace(/```\s*$/,"").trim();var a=t.indexOf("{"),b=t.lastIndexOf("}");if(a<0||b<a)throw new Error("réponse illisible");return JSON.parse(t.slice(a,b+1));}
+
+  async function generate(force){
+    if(running)return {ok:false,raison:"déjà en cours"};
+    var key=g("mg-api-key","");if(!key){stat("Il faut la clé Claude pour écrire une édition.");return {ok:false,raison:"clé"};}
+    if(!force&&Date.now()-(parseInt(g(K_LAST,"0"),10)||0)<WEEK)return {ok:false,raison:"pas encore"};
+    running=true;stat("Nouvelle édition en préparation : lecture des dernières nouvelles…");
+    try{
+      var j=await getJ(API),U=used(),items=(j.data||[]).filter(function(it){return it&&it.id&&U.indexOf(it.id)<0&&!/\bVideo\b|Patch Notes|Livestream|Subscriber|Promotion|Sale\b|Showdown/i.test(it.title||"");})
+        .map(function(it){return {id:it.id,titre:clean(it.title),canal:it.channel||"",serie:it.series||"",date:String(it.created_at||"").slice(0,10),texte:text(it).slice(0,1400),api:it.api_url,nimg:it.images_count||0};})
+        .filter(function(it){return it.texte.length>120;}).slice(0,9);
+      if(items.length<2){stat("Pas assez de nouvelles fraîches pour une édition ; réessaie dans quelques jours.");s(K_LAST,String(Date.now()-WEEK+86400000));return {ok:false,raison:"peu de nouvelles"};}
+      stat("Nouvelle édition en préparation : Seeker rédige…");
+      var D=window.__mgGet?__mgGet("spectrum"):{},prev=[];Object.keys(D).forEach(function(k){(D[k].articles||D[k].titres||[]).forEach(function(a){if(a&&a.titre)prev.push(a.titre);});});
+      var sys="Tu es la rédaction de Spectrum, le réseau d'information de l'UEE, en l'an 2956. Tu écris en français, dans l'univers de Star Citizen, comme un vrai journal de cette époque.";
+      var user="Voici les dernières dépêches reçues (ce sont de vraies nouvelles du monde réel autour de l'univers de Star Citizen). Écris l'édition de la semaine.\n"+
+        "RÈGLES :\n- Tout se passe DANS l'univers en 2956 : jamais les mots jeu, joueur, patch, mise à jour, version, alpha, serveur, développeurs, studio, CIG, Roberts Space Industries en tant que studio, vidéo, livestream, vente, abonnement, Q&R.\n"+
+        "- Transforme chaque nouvelle réelle en événement de l'univers : un nouveau vaisseau devient une présentation du constructeur ou un essai en vol ; une fonctionnalité devient une nouveauté dans la vie des pilotes ; un récit (Spectrum Dispatch, Portfolio…) devient un reportage. Ignore ce qui n'a pas d'équivalent dans l'univers.\n"+
+        "- N'invente ni prix, ni chiffre précis, ni nom de personne qui n'est pas dans la dépêche. Garde exacts les noms de vaisseaux, de constructeurs et de lieux.\n"+
+        "- 4 à 6 articles, chacun de 4 à 6 phrases, vivants, avec un titre de presse. Varie les journaux : New United (officiel, UEE), Terra Gazette (Terra, plus posé), Vox Populi (populaire, piquant), Crosshair (militaire et sécurité).\n"+
+        "- Rubriques possibles : Stanton, Pyro, Nyx, Politique, Industrie, Diplomatie, Sécurité, Science, Culture, Sport.\n"+
+        "- « annonce » : une seule phrase courte et ironique pour le bandeau, à la manière d'un communiqué d'entreprise.\n"+
+        (prev.length?"- Ne répète pas ces titres déjà parus : "+prev.slice(0,30).join(" | ")+"\n":"")+
+        "Réponds UNIQUEMENT avec ce JSON : {\"annonce\":\"…\",\"articles\":[{\"src\":<id de la dépêche>,\"source\":\"New United|Terra Gazette|Vox Populi|Crosshair\",\"rubrique\":\"…\",\"titre\":\"…\",\"texte\":\"…\"}]}\n"+
+        "DÉPÊCHES :\n"+JSON.stringify(items.map(function(it){return {id:it.id,titre:it.titre,canal:it.canal,serie:it.serie,date:it.date,texte:it.texte};}));
+      var model=g("mg-model","claude-haiku-4-5-20251001"),out=null;
+      for(var att=0;att<2&&!out;att++){
+        var c=new AbortController(),tm=setTimeout(function(){c.abort();},90000);
+        try{var r=await fetch("https://api.anthropic.com/v1/messages",{signal:c.signal,method:"POST",headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+            body:JSON.stringify({model:att?"claude-haiku-4-5-20251001":model,max_tokens:3500,system:sys,messages:[{role:"user",content:user}]})});
+          if(!r.ok){if(att||r.status===401)throw new Error("Claude HTTP "+r.status);continue;}
+          var dj=await r.json();out=parseJSON((dj.content||[]).filter(function(b){return b.type==="text";}).map(function(b){return b.text;}).join(""));}
+        finally{clearTimeout(tm);}}
+      var arts=(out&&Array.isArray(out.articles)?out.articles:[]).filter(function(a){return a&&a.titre&&a.texte;}).slice(0,6);
+      if(arts.length<2)throw new Error("édition trop courte");
+      stat("Nouvelle édition en préparation : photos…");
+      var imgs={};for(var i=0;i<arts.length;i++){var id=Number(arts[i].src),it=items.find(function(x){return x.id===id;});if(!it||!it.nimg||imgs[id]!==undefined)continue;
+        try{var dd=await getJ(it.api,15000),im=((dd.data||{}).images||[]).filter(function(x){return x&&x.rsi_url&&/image\//.test(x.mime_type||"image/")&&!/logo|icon|avatar/i.test(x.name||"");})[0];imgs[id]=im?im.rsi_url:null;}catch(_){imgs[id]=null;}}
+      var now=new Date(),SRC=["New United","Terra Gazette","Vox Populi","Crosshair"];
+      var ed={edition:edName(now),ordre:Math.floor(Date.now()/1000),auto:true,annonce:String(out.annonce||"").slice(0,220),
+        titres:arts.map(function(a){return {rubrique:String(a.rubrique||"Stanton").slice(0,20),titre:String(a.titre).slice(0,140)};}),
+        articles:arts.map(function(a){var o={source:SRC.indexOf(a.source)>=0?a.source:"New United",rubrique:String(a.rubrique||"Stanton").slice(0,20),titre:String(a.titre).slice(0,140),texte:String(a.texte).slice(0,1600)};
+          if(imgs[Number(a.src)])o.image={src:imgs[Number(a.src)],legende:String(a.titre).slice(0,90)};return o;})};
+      var docId="ed-auto-"+now.toISOString().slice(0,10);
+      await window.__mgDB.collection("spectrum").doc(docId).set(ed);
+      var keep=Object.keys(window.__mgGet("spectrum")).filter(function(k){return /^ed-auto-/.test(k);}).sort();while(keep.length>6){try{await window.__mgDB.collection("spectrum").doc(keep.shift()).delete();}catch(_){}}
+      s(K_USED,JSON.stringify(U.concat(items.map(function(it){return it.id;})).slice(-200)));s(K_LAST,String(Date.now()));
+      try{window.__rebuildSpectrum&&__rebuildSpectrum();}catch(_){}
+      stat("Nouvelle édition parue : « "+ed.edition+" » ("+arts.length+" articles).");
+      try{if(window.__skToast)__skToast("Nouvelle édition de Spectrum");}catch(_){}
+      return {ok:true,edition:ed.edition,articles:arts.length};
+    }catch(e){stat("Édition impossible pour l'instant : "+(e&&e.message||e)+".");s(K_LAST,String(Date.now()-WEEK+6*3600000));return {ok:false,raison:String(e&&e.message||e)};}
+    finally{running=false;}}
+  window.__spAuto=generate;
+
+  function maybe(){if(g(K_ON,"1")!=="1"||document.hidden)return;if(Date.now()-(parseInt(g(K_LAST,"0"),10)||0)<WEEK)return;generate(false);}
+  function wire(){var cb=document.getElementById("sk-spauto"),bt=document.getElementById("sk-spnow");
+    if(cb){cb.checked=g(K_ON,"1")==="1";cb.onchange=function(){s(K_ON,cb.checked?"1":"0");};}
+    if(bt)bt.onclick=function(){generate(true);};
+    var last=parseInt(g(K_LAST,"0"),10)||0;stat(last?"Dernière édition automatique : "+new Date(last).toLocaleDateString("fr-FR")+".":"Aucune édition automatique pour l'instant.");
+    setTimeout(maybe,25000);window.addEventListener("hashchange",function(){if(location.hash==="#spectrum")setTimeout(maybe,1500);});}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",wire);else wire();
 })();
 </script>
 </body>
