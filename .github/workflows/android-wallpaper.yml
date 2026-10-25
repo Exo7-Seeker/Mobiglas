@@ -21,11 +21,23 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Clé de signature (secrets GitHub, jamais dans le dépôt)
+        id: cle
+        env:
+          KS_B64: ${{ secrets.FOND3D_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KS_B64" ]; then echo "::warning::Secrets FOND3D_KEYSTORE_B64 / FOND3D_KEYSTORE_MDP absents : APK non publié."; echo "ok=non" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/fond3d.keystore"
+          echo "ok=oui" >> "$GITHUB_OUTPUT"
       - name: Construire l'APK
+        if: steps.cle.outputs.ok == 'oui'
         env:
           VERSION_CODE: ${{ github.run_number }}
+          FOND3D_KEYSTORE: ${{ runner.temp }}/fond3d.keystore
+          FOND3D_KEYSTORE_MDP: ${{ secrets.FOND3D_KEYSTORE_MDP }}
         run: gradle -p android-wallpaper assembleRelease --no-daemon --stacktrace
       - name: Publier
+        if: steps.cle.outputs.ok == 'oui'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -35,6 +47,7 @@ jobs:
             --notes "APK Android du fond d'écran animé en relief (mobiGlas Fond 3D). Installer, ouvrir, importer un fichier .cockpit3d, choisir la scène, Appliquer." \
             --latest
       - name: Copier l'APK sur le site (lien direct exo7-seeker.github.io/Mobiglas/fond3d.apk)
+        if: steps.cle.outputs.ok == 'oui'
         run: |
           cp mobiglas-fond-3d.apk fond3d.apk
           git config user.name "github-actions"

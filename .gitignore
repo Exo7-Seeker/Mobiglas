@@ -6,3 +6,8 @@
 # Fichiers de travail
 .claude/
 __pycache__/
+
+# Clés de signature : jamais dans le dépôt (secrets GitHub)
+*.keystore
+*.jks
+keystore.properties
